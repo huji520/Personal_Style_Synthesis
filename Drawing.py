@@ -148,3 +148,22 @@ class Drawing:
         # plt.imshow(mpimg.imread(self._ref_path))
         #
         # plt.show()
+        
+        def plot_picture(self):
+        w=6
+        h=4
+        f=3
+        plt.figure(figsize=(f*2.5, f*h))
+       
+        for stroke in self._data:
+            plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
+                     linewidth=3*stroke.average('pressure'),
+                     color='black')
+
+        plt.figure(figsize=(w, h))
+        plt.imshow(mpimg.imread(self._ref_path))
+
+        plt.show()
+        
+        plt.figure(figsize=(w, h))
+        plt.imshow(mpimg.imread(self._pic_path))
