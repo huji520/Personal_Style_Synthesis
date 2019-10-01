@@ -1,13 +1,21 @@
 import math
-import Constants
+from Personal_Style_Synthesis import Constants
 
 
 class Stroke:
-    def __init__(self, data):
+    def __init__(self, data, pause=False):
         """
         :param data: list of np.array, every array represent a feature
+        :param pause: true iff this is pause stroke
         """
         self._data = data
+        self._pause = pause
+
+    def is_pause(self):
+        """
+        :return: true iff this is pause stroke
+        """
+        return self._pause
 
     def get_data(self):
         """

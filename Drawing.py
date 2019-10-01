@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from Stroke import Stroke
+from Personal_Style_Synthesis.Stroke import Stroke
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
@@ -28,9 +28,9 @@ class Drawing:
 
     def size(self):
         """
-        :return: number of stroke in the file
+        :return: number of strokes in the file
         """
-        return len(self._data)
+        return int(len(self._data) / 2)  # half is pauses
 
     def total_length(self):
         """
@@ -40,6 +40,8 @@ class Drawing:
         dist = 0.0
         arr = []
         for stroke in self._data:
+            if stroke.is_pause():
+                continue
             arr.append(stroke.total_length())
             dist += stroke.total_length()
 
@@ -57,14 +59,15 @@ class Drawing:
         """
         return self.total_length()[1].std()
 
-    def active_time(self):
-        """
-        :return: total active time (without pauses time)
-        """
-        return self._data[-1].get_feature('time')[-1]
+    # def active_time(self):
+    #     """
+    #     :return: total active time (without pauses time)
+    #     """
+    #     return self._data[-1].get_feature('time')[-1]
 
     def get_strokes_as_one(self):
         """
+        @TODO - maybe not necessary function
         @TODO - this is not efficient implements
         :return: all the strokes in the file, merged into one stroke, without pauses
         """
@@ -81,15 +84,19 @@ class Drawing:
 
         return Stroke(np.asarray(new_stroke))
 
-    def feature_vs_time(self, feature, unit):
+    def feature_vs_time(self, feature, unit, pause):
         """
         :param feature:
         :param unit:
+        :param pause: true iff pauses strokes will shown in the plot
         :return:
         """
         time = []
         y = []
         for stroke in self.get_data():
+            if not pause:
+                if stroke.is_pause():
+                    continue
             time.append(stroke.get_feature("time")[0])
             if feature == "length":
                 y.append(stroke.length())
@@ -104,23 +111,23 @@ class Drawing:
         plt.ylabel(feature + " [" + unit + "]")
         plt.show()
 
-    def speed_vs_time(self):
+    def speed_vs_time(self, pause=False):
         """
         plot graph of speed vs time
         """
-        self.feature_vs_time("speed", "pixel/sec")
+        self.feature_vs_time("speed", "pixel/sec", pause)
 
-    def pressure_vs_time(self):
+    def pressure_vs_time(self, pause=False):
         """
         plot graph of pressure vs time
         """
-        self.feature_vs_time("pressure", "?")
+        self.feature_vs_time("pressure", "?", pause)
 
-    def length_vs_time(self):
+    def length_vs_time(self, pause=False):
         """
         plot graph of length vs time
         """
-        self.feature_vs_time("length", "pixel")
+        self.feature_vs_time("length", "pixel", pause)
 
     def plot_picture(self):
         plt.figure(figsize=(20, 10))
@@ -150,20 +157,20 @@ class Drawing:
         # plt.show()
         
         def plot_picture(self):
-        w=6
-        h=4
-        f=3
-        plt.figure(figsize=(f*2.5, f*h))
-       
-        for stroke in self._data:
-            plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
-                     linewidth=3*stroke.average('pressure'),
-                     color='black')
+            w=6
+            h=4
+            f=3
+            plt.figure(figsize=(f*2.5, f*h))
 
-        plt.figure(figsize=(w, h))
-        plt.imshow(mpimg.imread(self._ref_path))
+            for stroke in self._data:
+                plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
+                         linewidth=3*stroke.average('pressure'),
+                         color='black')
 
-        plt.show()
-        
-        plt.figure(figsize=(w, h))
-        plt.imshow(mpimg.imread(self._pic_path))
+            plt.figure(figsize=(w, h))
+            plt.imshow(mpimg.imread(self._ref_path))
+
+            plt.show()
+
+            plt.figure(figsize=(w, h))
+            plt.imshow(mpimg.imread(self._pic_path))

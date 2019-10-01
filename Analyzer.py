@@ -1,9 +1,9 @@
 import pandas as pd
-from Stroke import Stroke
-from Drawing import Drawing
+from Personal_Style_Synthesis.Stroke import Stroke
+from Personal_Style_Synthesis.Drawing import Drawing
 import os
 import numpy as np
-import Constants
+import Personal_Style_Synthesis.Constants as Constants
 
 
 class Analyzer:
@@ -13,7 +13,13 @@ class Analyzer:
         :param path: string
         :return: DataFrame object
         """
-        return pd.read_csv(path, delimiter='\t')
+        data = pd.read_csv(path, delimiter='\t')
+        return data.loc[data['time'].shift() != data['time']]  # removing duplicates pauses
+
+    @staticmethod
+    def get_pause_data(size):
+        return [np.zeros(size), np.full(size, -1), np.full(size, -1), np.zeros(size), np.full(size, -1),
+                np.full(size, -1), np.full(size, -1), np.full(size, -1), np.full(size, -1)]
 
     @staticmethod
     def get_strokes(data):
@@ -43,6 +49,16 @@ class Analyzer:
                 stroke_list.append(Stroke(stroke))
                 stroke = []
 
+                if i + 2 == len(data['time']):  # end of file
+                    break
+
+                pause_time = float(list(data['time'])[i+1]) - float(list(data['time'])[i-1])
+                pause_data = Analyzer.get_pause_data(int(pause_time / Constants.TIME_STAMP))
+                for j in range(len(pause_data[0])):
+                    pause_data[Constants.TIME][j] = current_time
+                    current_time += Constants.TIME_STAMP  # TIME_STAMP = 0.017
+                stroke_list.append(Stroke(pause_data, pause=True))
+
         return stroke_list
 
     @staticmethod
@@ -62,7 +78,7 @@ class Analyzer:
         :param data: DataFrame object
         :return: path to reference picture
         """
-        ref_name = data['time'][len(data['time'])-1].split(' ')[1]
+        ref_name = list(data['time'])[-1].split(' ')[1]
         return "ref_pics/" + ref_name + ".JPG"
 
     @staticmethod
@@ -85,12 +101,12 @@ class Analyzer:
 
 if __name__ == "__main__":
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
-    input2 = "data/D_01/zoey/zoey__130319_1208_D_01.txt"
+    # input2 = "data/D_01/zoey/zoey__130319_1208_D_01.txt"
     draw = Analyzer.create_drawing(input1)
-    # draw.speed_vs_time()
-    draw.plot_picture()
-    # a = Analyzer.create_drawing(input1)
-    # a.plot_picture()
+    draw.speed_vs_time(pause=True)
+    draw.length_vs_time()
+    draw.pressure_vs_time()
+    # draw.plot_picture()
     # from Participant import Participant
     # person = Participant("aliza")
     # person.plot_participant_pictures()
