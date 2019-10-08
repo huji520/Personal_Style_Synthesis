@@ -3,6 +3,8 @@ import copy
 from Stroke import Stroke
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import Constants
+from PIL import Image
 
 
 class Drawing:
@@ -140,35 +142,50 @@ class Drawing:
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
         """
-        plt.figure(figsize=(20, 10))
-        plt.subplot(1, 2, 1)
+        # plt.figure(figsize=(20, 10))
+        # plt.subplot(1, 2, 1)
+        #
+        # # y axis got minus to deal with the reflection.
+        # for stroke in self._data:
+        #     plt.plot(stroke.get_feature('x'), (-stroke.get_feature('y')),
+        #              linewidth=3*stroke.average('pressure'),
+        #              color='black')
+        #
+        # plt.subplot(1, 2, 2)
+        # plt.imshow(mpimg.imread(self._ref_path))
 
-        # y axis got minus to deal with the reflection.
+        # plt.show()
+
+
+        w = 6
+        h = 4
+        f = 3
+
+        # drawing
+        plt.figure(figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
-                     linewidth=3*stroke.average('pressure'),
+            plt.plot(stroke.get_feature('x'), Constants.DRAWING_HEIGHT - stroke.get_feature('y'),
+                     linewidth=3 * stroke.average('pressure'),
                      color='black')
 
-        plt.subplot(1, 2, 2)
-        plt.imshow(mpimg.imread(self._ref_path))
+        # reference
+        plt.figure(figsize=(w, h))
+        image = Image.open(self._ref_path)
+        ref_width = float(image.size[0])
+        ref_height = float(image.size[1])
+        new_width = 800  # the required width
+        ratio = new_width / ref_width
+        new_height = int(ref_height * float(ratio))
+        image = image.resize((new_width, new_height), Image.ANTIALIAS)
+        plt.imshow(image)
 
         plt.show()
 
-        # # From the meeting
-        # w = 6
-        # h = 4
-        # f = 3
-        # plt.figure(figsize=(f * 2.5, f * h))
-        #
-        # for stroke in self._data:
-        #     plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
-        #              linewidth=3 * stroke.average('pressure'),
-        #              color='black')
-        #
+
+
         # plt.figure(figsize=(w, h))
         # plt.imshow(mpimg.imread(self._ref_path))
-        #
-        # plt.show()
-        #
+
         # plt.figure(figsize=(w, h))
         # plt.imshow(mpimg.imread(self._pic_path))
+        # plt.show()
