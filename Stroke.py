@@ -1,5 +1,5 @@
-import math
-from Personal_Style_Synthesis import Constants
+import Constants
+import Analyzer
 
 
 class Stroke:
@@ -89,7 +89,7 @@ class Stroke:
         y_array = self.get_feature("y")
         dist = 0.0
         for i in range(1, len(x_array)):
-            dist += self.calc_dist_2D(x_array[i - 1], x_array[i], y_array[i - 1], y_array[i])
+            dist += Analyzer.Analyzer.calc_dist_2D(x_array[i - 1], x_array[i], y_array[i - 1], y_array[i])
 
         return dist
 
@@ -103,10 +103,3 @@ class Stroke:
             time += (time_array[i] - time_array[i-1])
 
         return time
-
-    @staticmethod
-    def calc_dist_2D(old_x, new_x, old_y, new_y):
-        """
-        :return: the distance between two points - 2D
-        """
-        return math.sqrt(float(pow(new_x - old_x, 2)) + float(pow(new_y - old_y, 2)))

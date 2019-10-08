@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from Personal_Style_Synthesis.Stroke import Stroke
+from Stroke import Stroke
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
@@ -15,9 +15,15 @@ class Drawing:
         self._pic_path = pic_path
 
     def get_ref_path(self):
+        """
+        :return: path to reference picture
+        """
         return self._ref_path
 
     def get_pic_path(self):
+        """
+        :return: path to the drawing picture
+        """
         return self._pic_path
 
     def get_data(self):
@@ -86,10 +92,10 @@ class Drawing:
 
     def feature_vs_time(self, feature, unit, pause):
         """
-        :param feature:
+        plot graph, given feature as function of time
+        :param feature: given feature for 'y' axis
         :param unit:
         :param pause: true iff pauses strokes will shown in the plot
-        :return:
         """
         time = []
         y = []
@@ -130,11 +136,17 @@ class Drawing:
         self.feature_vs_time("length", "pixel", pause)
 
     def plot_picture(self):
+        """
+        plot the reference picture and the actual drawing.
+        @TODO: pictures should be in the same resolution.
+        """
         plt.figure(figsize=(20, 10))
         plt.subplot(1, 2, 1)
+
+        # y axis got minus to deal with the reflection.
         for stroke in self._data:
             plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
-                     linewidth=10*stroke.average('pressure'),
+                     linewidth=3*stroke.average('pressure'),
                      color='black')
 
         plt.subplot(1, 2, 2)
@@ -142,35 +154,21 @@ class Drawing:
 
         plt.show()
 
-
-        # plt.figure(figsize=(24,8))
-        # plt.subplot(1, 3, 1)
+        # # From the meeting
+        # w = 6
+        # h = 4
+        # f = 3
+        # plt.figure(figsize=(f * 2.5, f * h))
+        #
         # for stroke in self._data:
-        #     plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'), linewidth=1, color='black')
+        #     plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
+        #              linewidth=3 * stroke.average('pressure'),
+        #              color='black')
         #
-        # plt.subplot(1, 3, 2)
-        # plt.imshow(mpimg.imread(self._pic_path))
-        #
-        # plt.subplot(1, 3, 3)
+        # plt.figure(figsize=(w, h))
         # plt.imshow(mpimg.imread(self._ref_path))
         #
         # plt.show()
-        
-        def plot_picture(self):
-            w=6
-            h=4
-            f=3
-            plt.figure(figsize=(f*2.5, f*h))
-
-            for stroke in self._data:
-                plt.plot(stroke.get_feature('x'), -stroke.get_feature('y'),
-                         linewidth=3*stroke.average('pressure'),
-                         color='black')
-
-            plt.figure(figsize=(w, h))
-            plt.imshow(mpimg.imread(self._ref_path))
-
-            plt.show()
-
-            plt.figure(figsize=(w, h))
-            plt.imshow(mpimg.imread(self._pic_path))
+        #
+        # plt.figure(figsize=(w, h))
+        # plt.imshow(mpimg.imread(self._pic_path))
