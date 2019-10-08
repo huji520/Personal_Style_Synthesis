@@ -10,7 +10,7 @@ class Participant:
 
     def get_all_files_of_participant(self):
         """
-        :return: 2D list, include data of the file (DataFrame) and path to reference picture
+        :return: list of Drawing of the participant
         """
         lst = []
         path = None
@@ -27,10 +27,17 @@ class Participant:
                                 drawing = Analyzer.create_drawing(path)
                                 if drawing is not None:
                                     lst.append(drawing)
+                                else:
+                                    print("Error: missing data")
+                            else:
+                                print("Error: missing data")
 
         return lst
 
     def plot_participant_pictures(self):
+        """
+        plot all the participant pictures
+        """
         for drawing in self._data:
             drawing.plot_picture()
 
