@@ -1,0 +1,9 @@
+packages needed:
+torch
+torchvision
+Pillow
+
+Download the following file (GitHub are not allowed to store file that bigger than 100MB):
+https://ufile.io/d7qc5vg6
+Put it in this directory (sketch_simplification)
+Then, run simplify.py
