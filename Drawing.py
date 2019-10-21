@@ -3,6 +3,7 @@ import copy
 from Stroke import Stroke
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib.pyplot import imread, imshow, imsave
 import Constants
 from PIL import Image
 
@@ -136,6 +137,41 @@ class Drawing:
         plot graph of length vs time
         """
         self.feature_vs_time("length", "pixel", pause)
+
+    def get_active_image_sizes(self):
+        """
+        Calculates the locations of the pixels that border the image.
+        :return: [start x, start y, end x, end y]
+        """
+        start_x = 20000
+        start_y = 20000
+        end_x = 0
+        end_y = 0
+
+        for stroke in self.get_data():
+            if stroke.is_pause():
+                continue
+            start_x = min(min(stroke.get_feature('x')), start_x)
+            end_x = max(max(stroke.get_feature('x')), end_x)
+            start_y = min(min(stroke.get_feature('y')), start_y)
+            end_y = max(max(stroke.get_feature('y')), end_y)
+
+        return [start_x, start_y, end_x, end_y]
+
+    def plot_crop_image(self):
+        """
+        plot the picture with only the active pixels (cropping)
+        """
+        img = Image.open(self.get_pic_path())
+        locations = self.get_active_image_sizes()  # 0 -> start_x, 1 -> start_y, 2 -> end_x, 3 -> end_y
+        img = img.crop((locations[0], locations[1], locations[2], locations[3]))
+        img.thumbnail([locations[2] - locations[0], locations[3] - locations[1]], Image.ANTIALIAS)
+        imshow(img)
+        plt.show()
+
+        # imagefile = open('out.png', 'wb')
+        # img.save(imagefile, "png")
+        # imagefile.close()
 
     def plot_picture(self):
         """

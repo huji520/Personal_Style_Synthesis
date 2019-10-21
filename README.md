@@ -15,6 +15,12 @@ The import line should be: "from FileName import ClassName" or "from Personal_St
 it's depends if you just open the git project after cloning, or creating new project in your local pc. If you wish only
 to import file and not a class (like Constants) you can just wrote "import FileName".
 
+directories:
+data: includes all the data files (.txt) and the drawings of the participants
+ref_pics: includes all the reference pictures
+ref_pics_crop: includes all the cropped reference pictures (with only the active pixels)
+sketch_simplification: includes files for implements sketch simplification
+
 
 ##############
 ### Stroke ###
@@ -60,7 +66,7 @@ You can choose if you want to see the pause-strokes in the graph, or not. The de
 and if you want to see them, just call the functions with: pause=True in the parameters.
 
 plot_picture(): In progress. Should plot the reference picture and the actual drawing, in the same resolution.
-
+plot_crop_image(): plot the picture with only the active pixels area
 
 ###################
 ### Participant ###
