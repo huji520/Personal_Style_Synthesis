@@ -96,7 +96,7 @@ class Analyzer:
         :return: path to reference picture
         """
         ref_name = list(data['time'])[-1].split(' ')[1]
-        return "ref_pics/" + ref_name + ".JPG"
+        return "ref_pics_crop/" + ref_name + ".JPG"
 
     @staticmethod
     def get_pic_path(path):

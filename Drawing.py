@@ -166,7 +166,19 @@ class Drawing:
         locations = self.get_active_image_sizes()  # 0 -> start_x, 1 -> start_y, 2 -> end_x, 3 -> end_y
         img = img.crop((locations[0], locations[1], locations[2], locations[3]))
         img.thumbnail([locations[2] - locations[0], locations[3] - locations[1]], Image.ANTIALIAS)
-        imshow(img)
+        plt.figure()
+        plt.imshow(img)
+
+        img_ref = Image.open("ref_pics_crop/D01.JPG")
+        ref_width = float(img_ref.size[0])
+        ref_height = float(img_ref.size[1])
+        new_width = img.size[0]  # the required width
+        ratio = new_width / ref_width
+        new_height = int(ref_height * float(ratio))
+        img_ref = img_ref.resize((new_width, new_height), Image.ANTIALIAS)
+        plt.figure()
+        plt.imshow(img_ref)
+
         plt.show()
 
         # imagefile = open('out.png', 'wb')
@@ -200,10 +212,10 @@ class Drawing:
         # drawing
         plt.figure(figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            plt.plot(stroke.get_feature('x'), Constants.DRAWING_HEIGHT - stroke.get_feature('y'),
+            plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
                      linewidth=3 * stroke.average('pressure'),
                      color='black')
-
+        plt.gca().invert_yaxis()
         # reference
         plt.figure(figsize=(w, h))
         image = Image.open(self._ref_path)
