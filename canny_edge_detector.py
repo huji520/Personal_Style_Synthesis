@@ -136,7 +136,3 @@ class cannyEdgeDetector:
             self.imgs_final.append(img_final)
 
         return self.imgs_final
-
-
-detect = cannyEdgeDetector(imread('faces_imgs/4.jpg'))
-imshow(np.asarray(detect.detect()))

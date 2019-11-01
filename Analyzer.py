@@ -5,6 +5,10 @@ import os
 import numpy as np
 import Constants
 import math
+import cv2
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import canny_edge_detector as ced
 
 
 class Analyzer:
@@ -131,3 +135,34 @@ class Analyzer:
         :return: the distance between two points - 2D
         """
         return math.sqrt(float(pow(new_x - old_x, 2)) + float(pow(new_y - old_y, 2)))
+
+    @staticmethod
+    def rgb2gray(rgb):
+        r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+        gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+        return gray
+
+    @staticmethod
+    def canny_edge_detector1(path, lowthreshold=100, highthreshold=250):
+        img = cv2.imread(path, 0)
+        edges = cv2.Canny(img, lowthreshold, highthreshold)
+        plt.subplot(121), plt.imshow(img, cmap='gray')
+        plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122), plt.imshow(edges, cmap='gray')
+        plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
+        plt.show()
+
+    @staticmethod
+    def canny_edge_detector2(path):
+        img = mpimg.imread(path)
+        img = Analyzer.rgb2gray(img)
+        plt.subplot(121), plt.imshow(img, 'gray'), plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+        detector = ced.cannyEdgeDetector([img],
+                                         sigma=1.4,
+                                         kernel_size=5,
+                                         lowthreshold=0.09,
+                                         highthreshold=0.22,
+                                         weak_pixel=100)
+        detect_image = detector.detect()
+        plt.subplot(122), plt.imshow(detect_image[0], 'gray'), plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
+        plt.show()

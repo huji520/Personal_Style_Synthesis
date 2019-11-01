@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
 import scipy.misc as sm
+import canny_edge_detector as ced
 
 def rgb2gray(rgb):
 
@@ -36,4 +37,13 @@ def visualize(imgs, format=None, gray=False):
         plt.imshow(img, format)
     plt.show()
 
-    
+
+def plot_all():
+    imgs = load_data()
+    visualize(imgs, 'gray')
+    detector = ced.cannyEdgeDetector(imgs, sigma=1.4, kernel_size=5, lowthreshold=0.15, highthreshold=0.27,
+                                     weak_pixel=100)
+    imgs_final = detector.detect()
+    visualize(imgs_final, 'gray')
+
+

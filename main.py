@@ -4,7 +4,7 @@ from PIL import Image
 from matplotlib.pyplot import imread, imshow, imsave
 import matplotlib.pyplot as plt
 import numpy as np
-# import cv2
+import cv2
 from scipy import ndimage as ndi
 from skimage import feature
 from scipy.misc import imread, imshow
@@ -26,29 +26,8 @@ if __name__ == "__main__":
     # person = Participant("aliza")
     # person.plot_participant_pictures()
 
-    # im = imread('ref_pics_crop/D01.JPG').astype(np.float64)
-    # im = rgb2gray(im)
-
-    # import cv2
-    # import numpy as np
-    # from matplotlib import pyplot as plt
-    #
-    # img = cv2.imread('ref_pics_crop/D01.JPG', 0)
-    # edges = cv2.Canny(img, 100, 200)
-    #
-    # plt.subplot(121), plt.imshow(img, cmap='gray')
-    # plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    # plt.subplot(122), plt.imshow(edges, cmap='gray')
-    # plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
-    #
-    # plt.show()
-
-    imgs = utils.load_data()
-    utils.visualize(imgs, 'gray')
-    detector = ced.cannyEdgeDetector(imgs, sigma=1.4, kernel_size=5, lowthreshold=0.09, highthreshold=0.17,
-                                     weak_pixel=100)
-    imgs_final = detector.detect()
-    utils.visualize(imgs_final, 'gray')
+    Analyzer.canny_edge_detector1('clean_refs_pics/D01_stroke.JPG')
+    Analyzer.canny_edge_detector2('clean_refs_pics/D01_stroke.JPG')
 
 
 
