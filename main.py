@@ -26,8 +26,8 @@ if __name__ == "__main__":
     # person = Participant("aliza")
     # person.plot_participant_pictures()
 
-    Analyzer.canny_edge_detector1('clean_refs_pics/D01_stroke.JPG')
-    Analyzer.canny_edge_detector2('clean_refs_pics/D01_stroke.JPG')
+    Analyzer.canny_edge_detector1('clean_refs_pics/D01_stroke.JPG', save_pic=True)
+    Analyzer.canny_edge_detector2('clean_refs_pics/D01_stroke.JPG', save_pic=True)
 
 
 
