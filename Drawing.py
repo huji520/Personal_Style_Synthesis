@@ -93,12 +93,14 @@ class Drawing:
 
         return Stroke(np.asarray(new_stroke))
 
-    def feature_vs_time(self, feature, unit, pause):
+    def feature_vs_time(self, feature, unit, pause, save = False, path = ""):
         """
         plot graph, given feature as function of time
         :param feature: given feature for 'y' axis
         :param unit:
         :param pause: true iff pauses strokes will shown in the plot
+        :param save: true for save the graph instead of plot it
+        :param path: the path the graph will be saved
         """
         time = []
         y = []
@@ -115,28 +117,47 @@ class Drawing:
         time = np.asarray(time)
         y = np.asarray(y)
         plt.scatter(time, y, s=2)
-        plt.title(feature + " mean is: " + str(y.mean()) + "\n" + feature + " std is: " + str(y.std()))
+        y_mean = y.mean()
+        y_std = y.std()
+        path_arr = path.split("/")
+        plt.title(path_arr[1] + "-" + path_arr[2] + "\n" + feature + " mean " \
+                    "is: " + str(y_mean) + "\n" + feature + " " +
+                  "std is: " + str(y_std))
         plt.xlabel('time [sec]')
         plt.ylabel(feature + " [" + unit + "]")
-        plt.show()
+        if not save:
+            plt.show()
+        else:
+            plt.savefig(path)
+        plt.close()
+        return y_mean, y_std
 
-    def speed_vs_time(self, pause=False):
+    def speed_vs_time(self, pause=False, save = False, path = ""):
         """
         plot graph of speed vs time
+        :param pause: true iff pauses strokes will shown in the plot
+        :param save: true for save the graph instead of plot it
+        :param path: the path the graph will be saved
         """
-        self.feature_vs_time("speed", "pixel/sec", pause)
+        return self.feature_vs_time("speed", "pixel/sec", pause, save, path)
 
-    def pressure_vs_time(self, pause=False):
+    def pressure_vs_time(self, pause=False, save = False, path = ""):
         """
         plot graph of pressure vs time
+        :param pause: true iff pauses strokes will shown in the plot
+        :param save: true for save the graph instead of plot it
+        :param path: the path the graph will be saved
         """
-        self.feature_vs_time("pressure", "?", pause)
+        return self.feature_vs_time("pressure", "?", pause, save, path)
 
-    def length_vs_time(self, pause=False):
+    def length_vs_time(self, pause=False, save = False, path = ""):
         """
         plot graph of length vs time
+        :param pause: true iff pauses strokes will shown in the plot
+        :param save: true for save the graph instead of plot it
+        :param path: the path the graph will be saved
         """
-        self.feature_vs_time("length", "pixel", pause)
+        return self.feature_vs_time("length", "pixel", pause, save, path)
 
     def get_active_image_sizes(self):
         """
@@ -158,29 +179,33 @@ class Drawing:
 
         return [start_x, start_y, end_x, end_y]
 
-    def plot_crop_image(self):
+    def plot_crop_image(self, return_without_plot = False):
         """
-        plot the picture with only the active pixels (cropping)
+
+        :param return_without_plot: true for only return IMG ref without plot
+        :return: IMG ref
         """
         img = Image.open(self.get_pic_path())
         locations = self.get_active_image_sizes()  # 0 -> start_x, 1 -> start_y, 2 -> end_x, 3 -> end_y
         img = img.crop((locations[0], locations[1], locations[2], locations[3]))
         img.thumbnail([locations[2] - locations[0], locations[3] - locations[1]], Image.ANTIALIAS)
-        plt.figure()
-        plt.imshow(img)
+        if not return_without_plot:
+            plt.figure()
+            plt.imshow(img)
 
-        img_ref = Image.open("ref_pics_crop/D01.JPG")
+        img_ref = Image.open(self._ref_path)
         ref_width = float(img_ref.size[0])
         ref_height = float(img_ref.size[1])
         new_width = img.size[0]  # the required width
         ratio = new_width / ref_width
         new_height = int(ref_height * float(ratio))
         img_ref = img_ref.resize((new_width, new_height), Image.ANTIALIAS)
-        plt.figure()
-        plt.imshow(img_ref)
+        if not return_without_plot:
+            plt.figure()
+            plt.imshow(img_ref)
+            plt.show()
 
-        plt.show()
-
+        return img, img_ref
         # imagefile = open('out.png', 'wb')
         # img.save(imagefile, "png")
         # imagefile.close()

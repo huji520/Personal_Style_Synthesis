@@ -12,6 +12,7 @@ from skimage.color import rgb2gray
 import utils
 import canny_edge_detector as ced
 
+import os
 
 if __name__ == "__main__":
     # input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
@@ -19,16 +20,18 @@ if __name__ == "__main__":
     # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
     # draw = Analyzer.create_drawing(input1)
     # draw.plot_crop_image()
+    input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
+    # draw = Analyzer.create_drawing(input1)
     # draw.speed_vs_time(pause=True)
     # draw.length_vs_time()
     # draw.pressure_vs_time()
     # draw.plot_picture()
-    # person = Participant("aliza")
-    # person.plot_participant_pictures()
 
-    Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
-    Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
+    # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
+    # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
 
 
 
+    person = Participant("aliza")
+    person.export_data()
 
