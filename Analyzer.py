@@ -143,7 +143,7 @@ class Analyzer:
         return gray
 
     @staticmethod
-    def canny_edge_detector1(path, lowthreshold=100, highthreshold=250, save_pic=False):
+    def canny_edge_detector1(path, lowthreshold=50, highthreshold=250, save_pic=False, out='out1.jpg'):
         img = cv2.imread(path, 0)
         edges = cv2.Canny(img, lowthreshold, highthreshold)
         plt.subplot(121), plt.imshow(img, cmap='gray')
@@ -151,11 +151,11 @@ class Analyzer:
         plt.subplot(122), plt.imshow(edges, cmap='gray')
         plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
         if save_pic:
-            plt.savefig('out1.jpg')
+            plt.savefig(out)
         plt.show()
 
     @staticmethod
-    def canny_edge_detector2(path, save_pic=False):
+    def canny_edge_detector2(path, save_pic=False, out='out2.jpg'):
         img = mpimg.imread(path)
         img = Analyzer.rgb2gray(img)
         plt.subplot(121), plt.imshow(img, 'gray'), plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -168,5 +168,5 @@ class Analyzer:
         detect_image = detector.detect()
         plt.subplot(122), plt.imshow(detect_image[0], 'gray'), plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
         if save_pic:
-            plt.savefig('out2.jpg')
+            plt.savefig(out)
         plt.show()
