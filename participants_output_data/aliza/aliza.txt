@@ -1,0 +1,6 @@
+speed_mean = 321.56203749043215		speed_std_mean = 193.94778684763912
+
+length_mean = 98.67381357029164		length_std_mean = 237.75997384364757
+
+pressure_mean = 0.07477648517893701		pressure_std_mean = 0.03375138192971398
+
