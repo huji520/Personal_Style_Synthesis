@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Simplifying Rough Sketches using Deep...
+Exec=/opt/google/chrome/google-chrome --profile-directory=Default --app-id=jchjnedfakpkeeengmiacmioboildkid
+Icon=chrome-jchjnedfakpkeeengmiacmioboildkid-Default
+StartupWMClass=crx_jchjnedfakpkeeengmiacmioboildkid
