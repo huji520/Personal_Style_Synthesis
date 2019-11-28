@@ -9,6 +9,8 @@ import cv2
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import canny_edge_detector as ced
+from imageio import imread, imsave
+from skimage.color import rgb2gray
 
 
 class Analyzer:
@@ -137,12 +139,6 @@ class Analyzer:
         return math.sqrt(float(pow(new_x - old_x, 2)) + float(pow(new_y - old_y, 2)))
 
     @staticmethod
-    def rgb2gray(rgb):
-        r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-        gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
-        return gray
-
-    @staticmethod
     def canny_edge_detector1(path, lowthreshold=50, highthreshold=250, save_pic=False, out='out1.jpg'):
         img = cv2.imread(path, 0)
         edges = cv2.Canny(img, lowthreshold, highthreshold)
@@ -157,7 +153,7 @@ class Analyzer:
     @staticmethod
     def canny_edge_detector2(path, save_pic=False, out='out2.jpg'):
         img = mpimg.imread(path)
-        img = Analyzer.rgb2gray(img)
+        img = rgb2gray(img)
         plt.subplot(121), plt.imshow(img, 'gray'), plt.title('Original Image'), plt.xticks([]), plt.yticks([])
         detector = ced.cannyEdgeDetector([img],
                                          sigma=1.4,
@@ -170,3 +166,21 @@ class Analyzer:
         if save_pic:
             plt.savefig(out)
         plt.show()
+
+    @staticmethod
+    def split_image_to_patches(path, patch_w, patch_h):
+        img = imread(path)
+        img = np.asarray(rgb2gray(img))
+
+        img_h = img.shape[0]
+        img_w = img.shape[1]
+
+        for i in range(0, img_h, patch_h):
+            if i + patch_h >= img_h:
+                break
+            for j in range(0, img_w, patch_w):
+                if j + patch_w >= img_w:
+                    break
+                temp = img[i:i+patch_h+1, j:j+patch_w+1]
+                imsave("patches/row_{0}_col_{1}.png".format(i, j), temp)
+

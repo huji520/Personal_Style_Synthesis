@@ -1,13 +1,13 @@
 from Analyzer import Analyzer
 from Participant import Participant
 from PIL import Image
-from matplotlib.pyplot import imread, imshow, imsave
+from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from scipy import ndimage as ndi
 from skimage import feature
-from scipy.misc import imread, imshow
+from imageio import imread
 from skimage.color import rgb2gray
 import utils
 import canny_edge_detector as ced
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
     # draw = Analyzer.create_drawing(input1)
     # draw.plot_crop_image()
-    input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
+    # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
     # draw = Analyzer.create_drawing(input1)
     # draw.speed_vs_time(pause=True)
     # draw.length_vs_time()
@@ -30,8 +30,8 @@ if __name__ == "__main__":
     # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
     # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
 
+    # person = Participant("aliza")
+    # person.export_data()
 
-
-    person = Participant("aliza")
-    person.export_data()
+    Analyzer.split_image_to_patches('out1.jpg', patch_w=40, patch_h=30)
 
