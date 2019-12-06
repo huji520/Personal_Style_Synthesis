@@ -31,7 +31,16 @@ if __name__ == "__main__":
     # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
 
     # person = Participant("aliza")
+    # person.split_all_participant_picture(50, 50)
     # person.export_data()
 
-    Analyzer.split_image_to_patches('out1.jpg', patch_w=40, patch_h=30)
+    # Analyzer.split_image_to_patches('out1.jpg', patch_w=40, patch_h=30)
+    # Analyzer.png2jpg_folder('dataset/A/png')
+    # Analyzer.split_image_to_patches('aliza/D01.jpg', 50, 50)
+    #
+    # img = imread('patches/1.jpg')
+    # print(img.shape)
+    # a = np.where(img == 255)
+    # print(len(a[1]))
 
+    Analyzer.simplify_folder('patches')

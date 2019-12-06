@@ -10,7 +10,10 @@ class Participant:
         self._data = self.get_all_files_of_participant()
 
     def get_data(self):
-        return self._data
+        return self._data[0]
+
+    def get_picture_list(self):
+        return self._data[1]
 
     def get_name(self):
         return self._name
@@ -20,6 +23,7 @@ class Participant:
         :return: list of Drawing of the participant
         """
         lst = []
+        pic_list = []
         path = None
         for picture in os.listdir("data"):
             if "DS_Store" not in picture:
@@ -30,6 +34,8 @@ class Participant:
                                 if "DS_Store" not in file:
                                     if file.endswith(".txt"):
                                         path = "data/" + picture + "/" + person + "/" + file
+                                    if file.endswith(".png"):
+                                        pic_list.append("data/" + picture + "/" + person + "/" + file)
                             if path is not None:
                                 drawing = Analyzer.create_drawing(path)
                                 if drawing is not None:
@@ -39,13 +45,13 @@ class Participant:
                             else:
                                 print("Error: missing data")
 
-        return lst
+        return lst, pic_list
 
     def plot_participant_pictures(self):
         """
         plot all the participant pictures
         """
-        for drawing in self._data:
+        for drawing in self._data[0]:
             drawing.plot_picture()
 
     def export_data(self):
@@ -68,7 +74,7 @@ class Participant:
         speed_counter = 0
         length_counter = 0
         pressure_counter = 0
-        for draw in self._data:
+        for draw in self._data[0]:
             img, img_ref = draw.plot_crop_image(True)
             path = "participants_output_data/" + self._name + "/" + \
                    draw.get_ref_path().split("/")[1]
@@ -115,3 +121,11 @@ class Participant:
                         str(pressure_total_std / pressure_counter) + "\n\n")
 
         text_file.close()
+
+    def split_all_participant_picture(self, patch_w, patch_h):
+        process_counter = 1
+        img_counter = 1
+        for pic_path in self.get_picture_list():
+            img_counter = Analyzer.split_image_to_patches(pic_path, patch_w, patch_h, img_counter)
+            print(process_counter, " out of ", len(self.get_picture_list()))
+            process_counter += 1

@@ -11,6 +11,7 @@ import matplotlib.image as mpimg
 import canny_edge_detector as ced
 from imageio import imread, imsave
 from skimage.color import rgb2gray
+from PIL import Image
 
 
 class Analyzer:
@@ -168,7 +169,8 @@ class Analyzer:
         plt.show()
 
     @staticmethod
-    def split_image_to_patches(path, patch_w, patch_h):
+    def split_image_to_patches(path, patch_w, patch_h, img_count=1):
+        print(path)
         img = imread(path)
         img = np.asarray(rgb2gray(img))
 
@@ -181,6 +183,42 @@ class Analyzer:
             for j in range(0, img_w, patch_w):
                 if j + patch_w >= img_w:
                     break
-                temp = img[i:i+patch_h+1, j:j+patch_w+1]
-                imsave("patches/row_{0}_col_{1}.png".format(i, j), temp)
+                temp = np.asarray(img[i:i+patch_h, j:j+patch_w])
+                if len(np.where(temp == 1)[1]) != patch_h * patch_w:
+                    imsave("patches/{0}.jpg".format(img_count), temp)
+                    img_count += 1
+                    # imsave("patches/row_{0}_col_{1}.jpg".format(i, j), temp)
+
+        return img_count
+
+    @staticmethod
+    def png2jpg(path):
+        # inverse
+        img = imread(path)
+        img = img[:, :, 3]
+        img = 255 - img
+        # img = np.where(img < 255, 0, 255)
+
+        # saving
+        arr = path.split('/')
+        name = arr[-1]
+        name = name[:-4]
+        name += '.jpg'
+        imsave('dataset/' + name, img)
+
+    @staticmethod
+    def png2jpg_folder(folder_path):
+        for img_path in os.listdir(folder_path):
+            Analyzer.png2jpg(folder_path + '/' + img_path)
+
+    @staticmethod
+    def simplify_folder(folder_path):
+        process_counter = 1
+        for img_path in os.listdir(folder_path):
+            os.system("python3 sketch_simplification/simplify.py "
+                      "                                          --img patches/{0} "
+                      "                                          --out sketch_simplification/simplify/{0} "
+                      "                                          --model model_gan".format(img_path))
+            print(process_counter, " out of ", len(os.listdir(folder_path)))
+            process_counter += 1
 
