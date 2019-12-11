@@ -1,6 +1,7 @@
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
-from scipy.misc import imread, imshow
+from matplotlib.pyplot import imshow
+from imageio import imread
 import matplotlib.pyplot as plt
 from scipy import misc
 import numpy as np
