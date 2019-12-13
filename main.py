@@ -43,4 +43,7 @@ if __name__ == "__main__":
     # a = np.where(img == 255)
     # print(len(a[1]))
 
-    Analyzer.simplify_folder('patches')
+    # Analyzer.simplify_folder('patches/B/val')
+    # Analyzer.crop_folder('patches/B/val', 48, 48)
+
+    # Analyzer.concat3image_directory('dataset/images')

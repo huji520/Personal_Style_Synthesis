@@ -216,9 +216,55 @@ class Analyzer:
         process_counter = 1
         for img_path in os.listdir(folder_path):
             os.system("python3 sketch_simplification/simplify.py "
-                      "                                          --img patches/{0} "
-                      "                                          --out sketch_simplification/simplify/{0} "
-                      "                                          --model model_gan".format(img_path))
-            print(process_counter, " out of ", len(os.listdir(folder_path)))
+                      "                                          --img {0}/{1} "
+                      "                                          --out sketch_simplification/simplify/{1} "
+                      "                                          --model model_gan".format(folder_path, img_path))
+            if process_counter % 100 == 0:
+                print(process_counter, " out of ", len(os.listdir(folder_path)))
             process_counter += 1
 
+    @staticmethod
+    def crop(img_path, w, h):
+        img = imread(img_path)
+        new_img = img[0:h, 0:w]
+        imsave(img_path, new_img)
+
+    @staticmethod
+    def crop_folder(folder_path, w, h):
+        process_counter = 1
+        for img_path in os.listdir(folder_path):
+            Analyzer.crop(os.path.join(folder_path, img_path), w, h)
+            if process_counter % 100 == 0:
+                print(process_counter, " out of ", len(os.listdir(folder_path)))
+            process_counter += 1
+
+    @staticmethod
+    def renaming_files_in_folder(folder_path, even_odd):
+        """
+        for even numbering call with 0, for odd call with 1.
+        """
+        for img_path in os.listdir(folder_path):
+            try:
+                new_name = int((int(img_path[9:-4]) - even_odd) / 2)
+            except:
+                continue
+            os.rename(r'{0}/{1}'.format(folder_path, img_path), r'{0}/{1}.png'.format(folder_path, new_name))
+
+    @staticmethod
+    def concat3image(path_fakeB, path_realA, path_realB, ):
+        realA = imread(path_realA)
+        realB = imread(path_realB)
+        fakeB = imread(path_fakeB)
+        realAB = np.hstack((realA, realB))
+        return np.hstack((realAB, fakeB))
+
+    @staticmethod
+    def concat3image_directory(folder_path):
+        """
+        for even numbering call with 0, for odd call with 1.
+        """
+        list = sorted(os.listdir(folder_path))
+        for i, img_path in enumerate(list):
+            if i % 3 == 0:
+                img = Analyzer.concat3image(os.path.join(folder_path, list[i]), os.path.join(folder_path, list[i+1]), os.path.join(folder_path, list[i+2]))
+                plt.imsave('concat/{0}.png'.format(int(i/3)), img)
