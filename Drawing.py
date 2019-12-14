@@ -6,6 +6,8 @@ import matplotlib.image as mpimg
 from matplotlib.pyplot import imread, imshow, imsave
 import Constants
 from PIL import Image
+import scipy.signal as signal
+import scipy.spatial.distance as distance
 
 
 class Drawing:
@@ -262,3 +264,77 @@ class Drawing:
         # plt.figure(figsize=(w, h))
         # plt.imshow(mpimg.imread(self._pic_path))
         # plt.show()
+
+
+    def strokes_correlation(self, stroke_1, stroke_2):
+        return signal.correlate2d(stroke_1, stroke_2)
+
+
+    def strokes_distance(self, stroke_1, stroke_2):
+        """
+        calculate the minimal euclidean distance between two strokes
+        :param stroke_1: first 2D numpy array of (x,y) coordinates
+        :param stroke_2: second 2D numpy array of (x,y) coordinates
+        :return: euclidean distance
+        """
+        len_1, len_2 = len(stroke_1), len(stroke_2)
+        # dist = np.sqrt(((stroke_1[: len_2] - stroke_2) ** 2).sum(-1)).sum() / min(len_1, len_2)
+        # print(dist)
+        if len_1 >= len_2:
+            dist = np.sqrt(((stroke_1[: len_2] - stroke_2) ** 2).sum(-1)).sum() / len_2
+            for i in range(1, len_1 - len_2):
+                temp_dist = np.sqrt(((stroke_1[i: i + len_2] - stroke_2) ** 2).sum(-1)).sum() / len_2
+                if temp_dist < dist: dist = temp_dist
+        else:
+            dist = np.sqrt(((stroke_1[:] - stroke_2[:len_1]) ** 2).sum(-1)).sum() / len_1
+            for i in range(1, len_2 - len_1):
+                temp_dist = np.sqrt(((stroke_2[i: i + len_1] - stroke_1) ** 2).sum(-1)).sum() / len_1
+                if temp_dist < dist: dist = temp_dist
+        return dist
+
+
+    def strokes_angle_difference(self, stroke_1, stroke_2):
+        """
+        calculate the angle between the end of one stroke and beginning of the other
+        :param stroke_1: first 2D numpy array of (x,y) coordinates
+        :param stroke_2: second 2D numpy array of (x,y) coordinates
+        :return: abs of the difference between strokes angles
+        """
+        x1_1, y1_1 = stroke_1[-1][0], stroke_1[-1][1]
+        x1_2, y1_2 = stroke_1[-2][0], stroke_1[-2][1]
+        x2_1, y2_1 = stroke_2[0][0], stroke_2[0][1]
+        x2_2, y2_2 = stroke_2[1][0], stroke_2[1][1]
+        if x1_1 - x1_2 == 0:
+            ang_1 = np.pi / 2
+        else:
+            ang_1 = np.arctan((y1_1 - y1_2) / (x1_1 - x1_2))
+        if x2_1 - x2_2 == 0:
+            ang_2 = np.pi / 2
+        else:
+            ang_2 = np.arctan((y2_1 - y2_2) / (x2_1 - x2_2))
+        # print(np.arctan(abs((x2_1 - x2_2) / (y2_1 - y2_2))))
+        return np.abs(ang_1 - ang_2)
+
+
+    def group_strokes(self, dist_threshold, ang_threshold):
+        """
+        divide all strokes in the drawing to groups according to distance and angle properties
+        :param dist_threshold: the maximal distance between strokes of which they'll belong to the same group
+        :param ang_threshold: the maximal angle between strokes of which they'll belong to the same group
+        :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
+        """
+        new_draws = []
+        data = [stroke for stroke in self._data if not stroke.is_pause()]
+        # print(data)
+        while len(data) is not 0:
+            group = [stroke for stroke in data[1:] if self.strokes_distance(np.array(data[0].get_data()[1:3]).T,
+                    np.array(stroke.get_data()[1:3]).T) <= dist_threshold
+                     and
+                     self.strokes_angle_difference(np.array(data[0].get_data()[1:3]).T,
+                      np.array(stroke.get_data()[1:3]).T) <= ang_threshold]
+            group.append(data[0])
+            new_draws.append(Drawing(group, self._ref_path, self._pic_path))
+            # print(group)
+            for stroke in group:
+                data = list(filter(lambda x: not np.array_equal(x, stroke), data))
+        return new_draws

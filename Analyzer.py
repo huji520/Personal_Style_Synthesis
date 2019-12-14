@@ -5,7 +5,7 @@ import os
 import numpy as np
 import Constants
 import math
-import cv2
+# import cv2
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import canny_edge_detector as ced
@@ -94,7 +94,7 @@ class Analyzer:
         array = []
         for value in string_array:
             array.append(float(value))
-        return np.asarray(array)
+        return np.array(array)
 
     @staticmethod
     def get_ref_path(data):

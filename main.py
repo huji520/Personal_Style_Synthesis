@@ -4,7 +4,7 @@ from PIL import Image
 from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
+# import cv2
 from scipy import ndimage as ndi
 from skimage import feature
 from imageio import imread
@@ -15,10 +15,10 @@ import canny_edge_detector as ced
 import os
 
 if __name__ == "__main__":
-    # input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
-    # input2 = "data/D_01/zoey/zoey__130319_1208_D_01.txt"
-    # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
-    # draw = Analyzer.create_drawing(input1)
+    input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
+    input2 = "data/D_01/zoey/zoey__130319_1208_D_01.txt"
+    input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
+    draw = Analyzer.create_drawing(input1)
     # draw.plot_crop_image()
     # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
     # draw = Analyzer.create_drawing(input1)
@@ -26,6 +26,19 @@ if __name__ == "__main__":
     # draw.length_vs_time()
     # draw.pressure_vs_time()
     # draw.plot_picture()
+    # strokes = draw.get_data()
+    # stroke_1, stroke_2 = strokes[0], strokes[2]
+    # stroke_1, stroke_2 = np.array(stroke_1.get_data()[1:3]), np.array(stroke_2.get_data()[1:3])
+    # print(draw.strokes_distance(stroke_1.T, stroke_2.T))
+    # print(draw.strokes_angle_difference(stroke_1.T, stroke_2.T))
+
+    draws = draw.group_strokes(10, 1)
+    strokes = []
+    for draw in draws:
+        strokes.extend(draw.get_data())
+    rebuilt_draw = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
+    # draws[1].plot_picture()
+    rebuilt_draw.plot_picture()
 
     # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
     # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
@@ -46,4 +59,3 @@ if __name__ == "__main__":
     # Analyzer.simplify_folder('patches/B/val')
     # Analyzer.crop_folder('patches/B/val', 48, 48)
 
-    # Analyzer.concat3image_directory('dataset/images')
