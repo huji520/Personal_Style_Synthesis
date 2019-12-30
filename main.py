@@ -33,13 +33,16 @@ if __name__ == "__main__":
     # print(draw.strokes_distance(stroke_1.T, stroke_2.T))
     # print(draw.strokes_angle_difference(stroke_1.T, stroke_2.T))
 
-    draws = draw.group_strokes(10, 1)
+    draws = draw.group_strokes(50, 30)
     strokes = []
     for draw in draws:
         strokes.extend(draw.get_data())
     rebuilt_draw = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
-    # draws[1].plot_picture()
-    rebuilt_draw.plot_picture()
+    print(len(draws))
+    for i in range(10):
+        draws[i].plot_picture()
+    plt.show()
+    # rebuilt_draw.plot_picture()
 
     # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
     # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')

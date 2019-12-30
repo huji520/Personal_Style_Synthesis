@@ -254,7 +254,7 @@ class Drawing:
         image = image.resize((new_width, new_height), Image.ANTIALIAS)
         plt.imshow(image)
 
-        plt.show()
+        # plt.show()
 
 
 
@@ -286,7 +286,7 @@ class Drawing:
                 temp_dist = np.sqrt(((stroke_1[i: i + len_2] - stroke_2) ** 2).sum(-1)).sum() / len_2
                 if temp_dist < dist: dist = temp_dist
         else:
-            dist = np.sqrt(((stroke_1[:] - stroke_2[:len_1]) ** 2).sum(-1)).sum() / len_1
+            dist = np.sqrt(((stroke_1 - stroke_2[:len_1]) ** 2).sum(-1)).sum() / len_1
             for i in range(1, len_2 - len_1):
                 temp_dist = np.sqrt(((stroke_2[i: i + len_1] - stroke_1) ** 2).sum(-1)).sum() / len_1
                 if temp_dist < dist: dist = temp_dist
@@ -313,7 +313,7 @@ class Drawing:
         else:
             ang_2 = np.arctan((y2_1 - y2_2) / (x2_1 - x2_2))
         # print(np.arctan(abs((x2_1 - x2_2) / (y2_1 - y2_2))))
-        return np.abs(ang_1 - ang_2)
+        return np.abs(abs(ang_1) - abs(ang_2))
 
 
     def group_strokes(self, dist_threshold, ang_threshold):
@@ -324,7 +324,7 @@ class Drawing:
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause()]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and  30 <= stroke.length() <= 150]
         # print(data)
         while len(data) is not 0:
             group = [stroke for stroke in data[1:] if self.strokes_distance(np.array(data[0].get_data()[1:3]).T,
