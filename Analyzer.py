@@ -259,12 +259,21 @@ class Analyzer:
         return np.hstack((realAB, fakeB))
 
     @staticmethod
-    def concat3image_directory(folder_path):
+    def concat3image_directory(folder_path, new_folder_name=None):
         """
         for even numbering call with 0, for odd call with 1.
         """
+        if new_folder_name is None:
+            path = folder_path.split('/')
+            new_folder_name = path[-1]
+
+        if not os.path.exists(os.path.join('concat', new_folder_name)):
+            os.mkdir(os.path.join('concat', new_folder_name))
+
         list = sorted(os.listdir(folder_path))
         for i, img_path in enumerate(list):
             if i % 3 == 0:
                 img = Analyzer.concat3image(os.path.join(folder_path, list[i]), os.path.join(folder_path, list[i+1]), os.path.join(folder_path, list[i+2]))
-                plt.imsave('concat/{0}.png'.format(int(i/3)), img)
+                plt.imsave('concat/{0}/{1}.png'.format(new_folder_name, int(i/3)), img)
+
+    
