@@ -277,3 +277,17 @@ class Analyzer:
                 plt.imsave('concat/{0}/{1}.png'.format(new_folder_name, int(i/3)), img)
 
     
+    def write_draw_to_file(draw):
+        print(draw.get_ref_path())
+        name = "clustered_draws/" + draw.get_ref_path().split('/')[-1].split('.')[-2] + ".txt"
+        f = open(name, 'w')
+        f.write("time\tx\ty\tpressure\ttiltX\ttiltY\tazimuth\tsidePressure\trotation\n")
+        for stroke in draw.get_data():
+            data = stroke.get_data()
+            for i in range(len(data[0])):
+                for j in range(len(data)):
+                    f.write(str(data[j][i]) + "\t")
+                f.write("\n")
+            # np.savetxt(name, np.array(stroke.get_data()).T)
+            f.write("cluster: " + str(stroke._group) + "\n\n")
+        f.close()

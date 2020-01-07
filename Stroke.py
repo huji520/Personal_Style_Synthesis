@@ -10,6 +10,8 @@ class Stroke:
         """
         self._data = data
         self._pause = pause
+        self._group = 0
+        self._color = 0
 
     def is_pause(self):
         """
