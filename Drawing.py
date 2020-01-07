@@ -239,9 +239,26 @@ class Drawing:
         # drawing
         plt.figure(figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                     linewidth=3 * stroke.average('pressure'),
-                     color='black')
+            if stroke._color == 0:
+                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'),
+                         color='black')
+            elif stroke._color == 1:
+                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'),
+                         color='red')
+            elif stroke._color == 2:
+                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'),
+                         color='blue')
+            elif stroke._color == 3:
+                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'),
+                         color='green')
+            else:
+                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'),
+                         color='purple')
         plt.gca().invert_yaxis()
         # reference
         plt.figure(figsize=(w, h))
@@ -270,7 +287,7 @@ class Drawing:
         return signal.correlate2d(stroke_1, stroke_2)
 
 
-    def strokes_distance(self, stroke_1, stroke_2):
+    def strokes_euc_distance(self, stroke_1, stroke_2):
         """
         calculate the minimal euclidean distance between two strokes
         :param stroke_1: first 2D numpy array of (x,y) coordinates
@@ -293,17 +310,52 @@ class Drawing:
         return dist
 
 
-    def strokes_angle_difference(self, stroke_1, stroke_2):
+    def strokes_distance(self, stroke_1, stroke_2, dist_threshold):
+        x1_1, y1_1 = stroke_1[0][0], stroke_1[0][1]
+        x1_2, y1_2 = stroke_1[-1][0], stroke_1[-1][1]
+        x2_1, y2_1 = stroke_2[0][0], stroke_2[0][1]
+        x2_2, y2_2 = stroke_2[-1][0], stroke_2[-1][1]
+        if np.sqrt((x1_2 - x2_1) ** 2 + (y1_2 - y2_1) ** 2) <= dist_threshold:
+            return 1
+        if np.sqrt((x1_2 - x2_2) ** 2 + (y1_2 - y2_2) ** 2) <= dist_threshold:
+            return 2
+        if np.sqrt((x1_1 - x2_2) ** 2 + (y1_1 - y2_2) ** 2) <= dist_threshold:
+            return 3
+        if np.sqrt((x1_1 - x2_1) ** 2 + (y1_1 - y2_1) ** 2) <= dist_threshold:
+            return 4
+        return 0
+
+
+    def strokes_angle_difference(self, stroke_1, stroke_2, dots_orientation):
         """
         calculate the angle between the end of one stroke and beginning of the other
         :param stroke_1: first 2D numpy array of (x,y) coordinates
         :param stroke_2: second 2D numpy array of (x,y) coordinates
+        :param dots_orientation: which dots are close enough
         :return: abs of the difference between strokes angles
         """
-        x1_1, y1_1 = stroke_1[-1][0], stroke_1[-1][1]
-        x1_2, y1_2 = stroke_1[-2][0], stroke_1[-2][1]
-        x2_1, y2_1 = stroke_2[0][0], stroke_2[0][1]
-        x2_2, y2_2 = stroke_2[1][0], stroke_2[1][1]
+        if dots_orientation == 1:
+            x1_1, y1_1 = stroke_1[-1][0], stroke_1[-1][1]
+            x1_2, y1_2 = stroke_1[-2][0], stroke_1[-2][1]
+            x2_1, y2_1 = stroke_2[0][0], stroke_2[0][1]
+            x2_2, y2_2 = stroke_2[1][0], stroke_2[1][1]
+        elif dots_orientation == 2:
+            x1_1, y1_1 = stroke_1[-1][0], stroke_1[-1][1]
+            x1_2, y1_2 = stroke_1[-2][0], stroke_1[-2][1]
+            x2_1, y2_1 = stroke_2[-1][0], stroke_2[-1][1]
+            x2_2, y2_2 = stroke_2[-2][0], stroke_2[-2][1]
+        elif dots_orientation == 3:
+            x1_1, y1_1 = stroke_1[0][0], stroke_1[0][1]
+            x1_2, y1_2 = stroke_1[1][0], stroke_1[1][1]
+            x2_1, y2_1 = stroke_2[-1][0], stroke_2[-1][1]
+            x2_2, y2_2 = stroke_2[-2][0], stroke_2[-2][1]
+        elif dots_orientation == 4:
+            x1_1, y1_1 = stroke_1[0][0], stroke_1[0][1]
+            x1_2, y1_2 = stroke_1[1][0], stroke_1[1][1]
+            x2_1, y2_1 = stroke_2[0][0], stroke_2[0][1]
+            x2_2, y2_2 = stroke_2[1][0], stroke_2[1][1]
+        else:
+            return 0
         if x1_1 - x1_2 == 0:
             ang_1 = np.pi / 2
         else:
@@ -316,25 +368,50 @@ class Drawing:
         return np.abs(abs(ang_1) - abs(ang_2))
 
 
-    def group_strokes(self, dist_threshold, ang_threshold):
+    def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold):
         """
         divide all strokes in the drawing to groups according to distance and angle properties
-        :param dist_threshold: the maximal distance between strokes of which they'll belong to the same group
+        :param euc_dist_threshold: the maximal distance between strokes of which they'll belong to the same group
         :param ang_threshold: the maximal angle between strokes of which they'll belong to the same group
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause() and  30 <= stroke.length() <= 150]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length() <= 250]
         # print(data)
+        counter = 0
         while len(data) is not 0:
-            group = [stroke for stroke in data[1:] if self.strokes_distance(np.array(data[0].get_data()[1:3]).T,
-                    np.array(stroke.get_data()[1:3]).T) <= dist_threshold
-                     and
-                     self.strokes_angle_difference(np.array(data[0].get_data()[1:3]).T,
-                      np.array(stroke.get_data()[1:3]).T) <= ang_threshold]
+            # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
+            #          np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold
+            #          or
+            #          (self.strokes_distance(np.array(data[0].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
+            #          dist_threshold)
+            #          and
+            #          self.strokes_angle_difference(np.array(data[0].get_data()[1:3]).T,
+            #          np.array(stroke.get_data()[1:3]).T, self.strokes_distance(np.array(data[0].get_data()[1:3]).T,
+            #          np.array(stroke.get_data()[1:3]).T, dist_threshold)) <= ang_threshold)]
+            # group.append(data[0])
+            group = []
             group.append(data[0])
-            new_draws.append(Drawing(group, self._ref_path, self._pic_path))
-            # print(group)
+            i = 0
+            data[0]._group = counter + 1
+            for stroke in data[1:]:
+                if (self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
+                     np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold
+                     or
+                     (self.strokes_distance(np.array(data[0].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
+                     dist_threshold)
+                     and
+                     self.strokes_angle_difference(np.array(data[i].get_data()[1:3]).T,
+                     np.array(stroke.get_data()[1:3]).T, self.strokes_distance(np.array(data[i].get_data()[1:3]).T,
+                     np.array(stroke.get_data()[1:3]).T, dist_threshold)) <= ang_threshold)):
+                    stroke._group = counter + 1
+                    group.append(stroke)
+                    i = i + 1
             for stroke in group:
+                stroke._color = counter % 5
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
-        return new_draws
+            new_draws.append(Drawing(group, self._ref_path, self._pic_path))
+            counter = counter + 1
+            # print(group)
+
+        return self, new_draws
