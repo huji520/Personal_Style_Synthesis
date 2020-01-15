@@ -281,13 +281,15 @@ class Analyzer:
         print(draw.get_ref_path())
         name = "clustered_draws/" + draw.get_ref_path().split('/')[-1].split('.')[-2] + ".txt"
         f = open(name, 'w')
-        f.write("time\tx\ty\tpressure\ttiltX\ttiltY\tazimuth\tsidePressure\trotation\n")
+        f.write("time\tx\ty\tpressure\ttiltX\ttiltY\tazimuth\tsidePressure\trotation\tcluster\n")
         for stroke in draw.get_data():
+            if stroke.is_pause():
+                continue
             data = stroke.get_data()
             for i in range(len(data[0])):
                 for j in range(len(data)):
                     f.write(str(data[j][i]) + "\t")
-                f.write("\n")
+                f.write(str(stroke._group) + "\n")
             # np.savetxt(name, np.array(stroke.get_data()).T)
-            f.write("cluster: " + str(stroke._group) + "\n\n")
+            f.write("\n\n")
         f.close()

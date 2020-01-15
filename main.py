@@ -16,10 +16,10 @@ import canny_edge_detector as ced
 import os
 
 if __name__ == "__main__":
-    # input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
+    input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
     # input2 = "data/D_01/zoey/zoey__130319_1208_D_01.txt"
     # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
-    # draw = Analyzer.create_drawing(input1)
+    draw = Analyzer.create_drawing(input1)
     # draw.plot_crop_image()
     # input3 = "data/F_05/aliza/aliza__040619_1842_F_05.txt"
     # draw = Analyzer.create_drawing(input1)
@@ -33,11 +33,11 @@ if __name__ == "__main__":
     # print(draw.strokes_distance(stroke_1.T, stroke_2.T))
     # print(draw.strokes_angle_difference(stroke_1.T, stroke_2.T))
 
-    orig_draw, draws = draw.group_strokes(50, 10, 0.5)
+    orig_draw, draws = draw.group_strokes(50, 50, 1)
     strokes = []
     for draw in draws:
         strokes.extend(draw.get_data())
-    Analyzer.write_draw_to_file(orig_draw)
+    # Analyzer.write_draw_to_file(orig_draw)
     rebuilt_draw = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
     print(len(draws))
     rebuilt_draw.plot_picture()
