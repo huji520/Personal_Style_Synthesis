@@ -16,13 +16,13 @@ def closest_points(start_point, points, dist):
 
 
 def calc_curve(points, dist):
-    curve = []  # list of control points of the current curve we work on
+
     all_curve = []  # list of lists
     pt = points.pop(0)
-
+    curve = []  # list of control points of the current curve we work on
     while len(points) > 0:
         result = closest_points(pt, points, dist)
-        if result:
+        if len(result) > 0:
             rmv = []
             next_point = [0, 0]
             lenP = len(result)
@@ -37,6 +37,9 @@ def calc_curve(points, dist):
 
             # remove all the closest points
             for i in range(lenP):
+                print(rmv[i])
+                print(points)
+                print()
                 points.remove(rmv[i])
 
             # if we are done append the end point
@@ -46,54 +49,68 @@ def calc_curve(points, dist):
 
         else:
             if len(curve) == 0:
-                print("len(b)==0):")
-                break
+                points.remove(pt)
+                pt = points.pop(0)
+                continue
 
             curveSartpoint = curve[0]
             result = closest_points(curveSartpoint, points, 2 * dist)
-            if result:
+            if len(result):
                 curve.reverse()
                 pt = result[0]
                 continue
-
             else:
                 print("no close points found so save b and continue from wherever")
                 all_curve.append(curve)
+                if len(points) == 0:
+                    break
                 pt = points.pop(0)
                 curve = []
                 continue
-
     return all_curve
 
 
-x = [670, 671, 672, 673, 675, 677, 680, 682, 683, 685, 686, 688, 689, 690, 690, 691, 691, 690]
-y = [283, 282, 282, 283, 284, 285, 287, 289, 291, 296, 299, 300, 303, 305, 308, 313, 316, 320]
+def remove_duplicates(points):
+    new_points = np.unique(np.array(points), axis=0)
+    return list(new_points)
 
-points = np.stack((x, y), axis=1)
-points = list(points)
-dist = 10
 
-c = np.array(calc_curve(points, dist)).astype(np.int)
 
-plt.plot(c[0][:,0], c[0][:,1], 'o', lw=0.1, ms=3, c='r')
-plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
-plt.show()
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-# from geomdl import fitting
-# from geomdl.visualization import VisMPL as vis
+x = [670, 670, 671, 672, 673, 675, 677, 680, 682, 683, 685, 686, 688, 689, 690, 690, 691, 691, 690]
+y = [283, 283, 282, 282, 283, 284, 285, 287, 289, 291, 296, 299, 300, 303, 305, 308, 313, 316, 320]
 #
 # points = np.stack((x, y), axis=1)
-# degree = 2
-# curve = fitting.interpolate_curve(list(points), degree)
-# curve.delta = 0.01
-# curve.vis = vis.VisCurve2D(ctrlpts=False, legend=False, axes=False, figure_size=[8/3, 8/3])
-# curve.render(save='out.png')
+# points = list(points)
+# dist = 5
+# curves = np.array(calc_curve(points, dist))
+# points = []
+# for curve in curves:
+#     for point in curve:
+#         points.append(point)
 #
-# plt.plot(x, y, 'o', lw=0.2, ms=2)
-# plt.ylim(np.mean(y) - 32, np.mean(y) + 32)
-# plt.xlim(np.mean(x) - 32, np.mean(x) + 32)
+# points = np.array(points)
+# plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
+# plt.plot(points[:, 0], points[:, 1], 'o', lw=0.2, ms=2, c='r')
 # plt.show()
+
+def show_simplifican(x, y):
+    points = np.stack((x, y), axis=1)
+    points = list(points)
+    print(points)
+    # points = remove_duplicates(points)
+    dist = 5
+    curves = np.array(calc_curve(points, dist))
+    print(curves)
+    points = []
+    for curve in curves:
+        for point in curve:
+            points.append(point)
+
+    points = np.array(points)
+
+    print(points)
+    plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
+    plt.plot(points[:, 0], points[:, 1], 'o', lw=0.2, ms=2, c='r')
+    plt.show()
 
 

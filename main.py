@@ -12,6 +12,7 @@ from imageio import imread
 from skimage.color import rgb2gray
 import utils
 import canny_edge_detector as ced
+import simplify_cluster
 
 import os
 
@@ -33,15 +34,16 @@ if __name__ == "__main__":
     # print(draw.strokes_distance(stroke_1.T, stroke_2.T))
     # print(draw.strokes_angle_difference(stroke_1.T, stroke_2.T))
 
-    orig_draw, draws = draw.group_strokes(50, 50, 1)
-    strokes = []
-    for draw in draws:
-        strokes.extend(draw.get_data())
-    # Analyzer.write_draw_to_file(orig_draw)
-    rebuilt_draw = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
-    print(len(draws))
-    rebuilt_draw.plot_picture()
-    # draws[4].plot_picture()
+    orig_draw, draws = draw.group_strokes(50, 10, 0.5)
+    # strokes = []
+    # for draw in draws:
+    #     strokes.extend(draw.get_data())
+    # # Analyzer.write_draw_to_file(orig_draw)
+    # rebuilt_draw = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
+    # print(len(draws))
+    # rebuilt_draw.plot_picture()
+    # draws[0].plot_picture()
+
     # for i in range(10):
     #     draws[i].plot_picture()
     # plt.show()
@@ -52,9 +54,16 @@ if __name__ == "__main__":
     #     strokes.extend(draw.get_data())
     # rebuilt_draw1 = Drawing(strokes, draws[0].get_ref_path(), draws[0].get_pic_path())
     # rebuilt_draw1.plot_picture()
-    plt.show()
+    # plt.show()
     # draws[3].plot_picture()
     # plt.show()
+    x = []
+    y = []
+    for stroke in draws[0].get_data():
+        x.extend(stroke.get_feature('x'))
+        y.extend(stroke.get_feature('y'))
+
+    simplify_cluster.show_simplifican(x, y)
 
 
     # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
@@ -76,5 +85,5 @@ if __name__ == "__main__":
     # Analyzer.simplify_folder('patches/B/val')
     # Analyzer.crop_folder('patches/B/val', 48, 48)
 
-    Analyzer.concat3image_directory('dataset/segments_overfit_20_pix2pix', 'overfit_20')
+    # Analyzer.concat3image_directory('dataset/segments_overfit_20_pix2pix', 'overfit_20')
 
