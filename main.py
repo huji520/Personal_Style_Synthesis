@@ -13,6 +13,7 @@ from skimage.color import rgb2gray
 import utils
 import canny_edge_detector as ced
 import simplify_cluster
+import Distance
 
 import os
 
@@ -57,13 +58,28 @@ if __name__ == "__main__":
     # plt.show()
     # draws[3].plot_picture()
     # plt.show()
-    x = []
-    y = []
-    for stroke in draws[0].get_data():
-        x.extend(stroke.get_feature('x'))
-        y.extend(stroke.get_feature('y'))
+    arr = []
+    for i, draw in enumerate(draws):
+        x = []
+        y = []
+        for stroke in draw.get_data():
+            x.extend(stroke.get_feature('x'))
+            y.extend(stroke.get_feature('y'))
 
-    simplify_cluster.show_simplifican(x, y)
+        p = simplify_cluster.show_simplifican(x, y, i, dist=10)
+        if len(p) > 3:  # handle with very short simplify
+            arr.append(p)
+
+    p1 = np.array([[1,2],[2,6],[3,10],[5,11]])
+    p = Distance.find_nearest_neighbor(p1, arr)
+
+    plt.figure(1)
+    plt.subplot(121)
+    plt.plot(p1[:,0], p1[:,1], 'o', lw=0.5, ms=2, c='b')
+    plt.subplot(122)
+    plt.plot(p[:, 0], p[:, 1], 'o', lw=0.5, ms=2, c='r')
+    plt.show()
+
 
 
     # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')

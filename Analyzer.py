@@ -5,13 +5,13 @@ import os
 import numpy as np
 import Constants
 import math
-# import cv2
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import canny_edge_detector as ced
 from imageio import imread, imsave
 from skimage.color import rgb2gray
 from PIL import Image
+from skimage.transform import rescale, resize, downscale_local_mean
 
 
 class Analyzer:
@@ -226,7 +226,7 @@ class Analyzer:
     @staticmethod
     def crop(img_path, w, h):
         img = imread(img_path)
-        new_img = img[0:h, 0:w]
+        new_img = img[240:, :]
         imsave(img_path, new_img)
 
     @staticmethod
@@ -234,9 +234,25 @@ class Analyzer:
         process_counter = 1
         for img_path in os.listdir(folder_path):
             Analyzer.crop(os.path.join(folder_path, img_path), w, h)
-            if process_counter % 100 == 0:
-                print(process_counter, " out of ", len(os.listdir(folder_path)))
+
+            print(process_counter, " out of ", len(os.listdir(folder_path)))
             process_counter += 1
+
+    @staticmethod
+    def resize(img_path, factor=2):
+        image = imread(img_path)
+        image_resized = resize(image, (image.shape[0] // factor, image.shape[1] // factor),
+                               anti_aliasing=True)
+        imsave(img_path, image_resized)
+
+    @staticmethod
+    def resize_folder(folder_path, factor):
+        process_counter = 1
+        for img_path in os.listdir(folder_path):
+            Analyzer.resize(os.path.join(folder_path, img_path), factor)
+            print(process_counter, " out of ", len(os.listdir(folder_path)))
+            process_counter += 1
+
 
     @staticmethod
     def renaming_files_in_folder(folder_path, even_odd):
