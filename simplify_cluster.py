@@ -131,13 +131,13 @@ def show_simplifican(x, y, i, dist):
         for point in curve:
             points.append(point)
 
-    points = np.array(points)
-    return points
+    # points = np.array(points)
     # plt.figure(i)
     # plt.subplot(121)
     # plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
     # plt.subplot(122)
     # plt.plot(points[:, 0], points[:, 1], 'o', lw=0.5, ms=2, c='r')
-    # plt.savefig(os.path.join('simplify_clusters_dist14', '{0}.png'.format(i)))
+    # plt.savefig(os.path.join('simplify_clusters_dist10', '{0}.png'.format(i)))
+    return points
 
 

@@ -271,7 +271,7 @@ class Drawing:
         image = image.resize((new_width, new_height), Image.ANTIALIAS)
         plt.imshow(image)
 
-        # plt.show()
+        plt.show()
 
 
 
@@ -376,7 +376,7 @@ class Drawing:
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause()]# and 30 <= stroke.length() <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length() <= 250]
         # print(data)
         counter = 0
         while len(data) is not 0:

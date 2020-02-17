@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import bezier
+
 
 
 def l2(p1, p2):
@@ -35,7 +35,7 @@ def calc_error(p1, p2):
             min_dist = min(min_dist, l2(point1, point2))
         error2 += min_dist
 
-    return error1 + error2
+    return (error1 + error2) / (len(p1) + len(p2))
 
 
 def find_nearest_neighbor(p1, neighbors):
@@ -54,7 +54,7 @@ def find_nearest_neighbor(p1, neighbors):
         error = calc_error(p1, normalize_p)
         if error < min_score:
             min_score = error
-            nearest_neighbor = p
+            nearest_neighbor = normalize_p
 
     return nearest_neighbor
 
