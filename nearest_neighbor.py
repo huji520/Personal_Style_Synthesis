@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def l2(p1, p2):
     """
     calc l2 metric between two points
@@ -71,28 +70,3 @@ def normalize_points(points):
     points[:, 0] -= x_shift
     points[:, 1] -= y_shift
     return points
-
-
-
-
-
-# p1 = np.array([[1,2],[2,6],[3,10],[5,11]])
-# p1 = np.array([[1,2, 3, 5, 7, 8, 9, 10],[2, 6, 10, 11, 9, 8, 5, 3]])
-# p2 = np.array([[2,3],[4,5], [6,7],[8,9]])
-
-
-# curve1 = bezier.Curve(p1, degree=2)
-# curve = bezier.Curve(p1, degree=2)
-# curve = bezier.Curve.from_nodes(p1)
-# curve.plot(100)
-
-# s_vals = np.linspace(0.0, 1.0, 5)
-# points = curve.evaluate_multi(s_vals)
-# print(points)
-
-
-# print(Distance.calc_error(p1,p2))
-# plt.plot(p1[0], p1[1], 'o', lw=0.5, ms=2, c='r')
-# plt.plot(p1[:, 0], p1[:, 1], 'o', lw=0.5, ms=2, c='r')
-# plt.plot(p2[:, 0], p2[:, 1], 'o', lw=0.5, ms=2, c='b')
-# plt.show()

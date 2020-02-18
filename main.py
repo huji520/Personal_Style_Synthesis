@@ -5,15 +5,12 @@ from PIL import Image
 from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 import numpy as np
-# import cv2
 from scipy import ndimage as ndi
 from skimage import feature
 from imageio import imread
 from skimage.color import rgb2gray
-import utils
-import canny_edge_detector as ced
 import simplify_cluster
-import Distance
+import nearest_neighbor
 
 import os
 
@@ -102,26 +99,4 @@ if __name__ == "__main__":
     plt.plot(p[:, 0], p[:, 1], 'o', lw=0.5, ms=2, c='r')
     plt.show()
 
-
-
-    # Analyzer.canny_edge_detector1('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out3.jpg')
-    # Analyzer.canny_edge_detector2('clean_refs_pics/F01_stroke.jpg', save_pic=True, out='out4.jpg')
-
-    # person = Participant("aliza")
-    # person.split_all_participant_picture(50, 50)
-    # person.export_data()
-
-    # Analyzer.split_image_to_patches('out1.jpg', patch_w=40, patch_h=30)
-    # Analyzer.png2jpg_folder('dataset/A/png')
-    # Analyzer.split_image_to_patches('aliza/D01.jpg', 50, 50)
-    #
-    # img = imread('patches/1.jpg')
-    # print(img.shape)
-    # a = np.where(img == 255)
-    # print(len(a[1]))
-
-    # Analyzer.simplify_folder('patches/B/val')
-    # Analyzer.crop_folder('patches/B/val', 48, 48)
-
-    # Analyzer.concat3image_directory('dataset/segments_overfit_20_pix2pix', 'overfit_20')
 

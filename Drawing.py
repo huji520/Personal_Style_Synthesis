@@ -1,13 +1,12 @@
 import numpy as np
 import copy
-from Stroke import Stroke
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from matplotlib.pyplot import imread, imshow, imsave
-import Constants
 from PIL import Image
 import scipy.signal as signal
 import scipy.spatial.distance as distance
+import Constants
+from Stroke import Stroke
 
 
 class Drawing:
@@ -69,12 +68,6 @@ class Drawing:
         :return: std of the geometric length of the strokes
         """
         return self.total_length()[1].std()
-
-    # def active_time(self):
-    #     """
-    #     :return: total active time (without pauses time)
-    #     """
-    #     return self._data[-1].get_feature('time')[-1]
 
     def get_strokes_as_one(self):
         """
@@ -208,30 +201,12 @@ class Drawing:
             plt.show()
 
         return img, img_ref
-        # imagefile = open('out.png', 'wb')
-        # img.save(imagefile, "png")
-        # imagefile.close()
 
     def plot_picture(self):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
         """
-        # plt.figure(figsize=(20, 10))
-        # plt.subplot(1, 2, 1)
-        #
-        # # y axis got minus to deal with the reflection.
-        # for stroke in self._data:
-        #     plt.plot(stroke.get_feature('x'), (-stroke.get_feature('y')),
-        #              linewidth=3*stroke.average('pressure'),
-        #              color='black')
-        #
-        # plt.subplot(1, 2, 2)
-        # plt.imshow(mpimg.imread(self._ref_path))
-
-        # plt.show()
-
-
         w = 6
         h = 4
         f = 3
@@ -273,19 +248,8 @@ class Drawing:
 
         plt.show()
 
-
-
-        # plt.figure(figsize=(w, h))
-        # plt.imshow(mpimg.imread(self._ref_path))
-
-        # plt.figure(figsize=(w, h))
-        # plt.imshow(mpimg.imread(self._pic_path))
-        # plt.show()
-
-
     def strokes_correlation(self, stroke_1, stroke_2):
         return signal.correlate2d(stroke_1, stroke_2)
-
 
     def strokes_euc_distance(self, stroke_1, stroke_2):
         """
@@ -324,7 +288,6 @@ class Drawing:
         if np.sqrt((x1_1 - x2_1) ** 2 + (y1_1 - y2_1) ** 2) <= dist_threshold:
             return 4
         return 0
-
 
     def strokes_angle_difference(self, stroke_1, stroke_2, dots_orientation):
         """
@@ -366,7 +329,6 @@ class Drawing:
             ang_2 = np.arctan((y2_1 - y2_2) / (x2_1 - x2_2))
         # print(np.arctan(abs((x2_1 - x2_2) / (y2_1 - y2_2))))
         return np.abs(abs(ang_1) - abs(ang_2))
-
 
     def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold):
         """

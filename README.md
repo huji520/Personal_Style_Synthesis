@@ -9,17 +9,25 @@ the following packages are required:
 3) os
 4) copy
 5) matplotlib
-
-The project is build in classes, so the files are using other files in the project, so we need to import them.
-The import line should be: "from FileName import ClassName" or "from Personal_Style_Synthesis.FileName import ClassName",
-it's depends if you just open the git project after cloning, or creating new project in your local pc. If you wish only
-to import file and not a class (like Constants) you can just wrote "import FileName".
+6) math
+7) imageio
+8) skimage
+9) PIL
+10) scipy
 
 directories:
-data: includes all the data files (.txt) and the drawings of the participants
-ref_pics: includes all the reference pictures
-ref_pics_crop: includes all the cropped reference pictures (with only the active pixels)
-sketch_simplification: includes files for implements sketch simplification
+data: includes all the data files (.txt) and the drawings (.png) of the participants.
+ref_pics: includes all the reference pictures.
+ref_pics_crop: includes all the cropped reference pictures (with only the active pixels).
+sketch_simplification: includes files for implements sketch simplification.
+articles: includes relevants artical for our project.
+concat: includes results of the Pix2Pix network (input, label, prediction) as one picture.
+dataset: includes results of the Pix2Pix network (input, label, prediction) separte.
+participant_output_data: includes participant draws and graphs.
+
+Tal: 
+clustered_draws: ?
+
 
 
 ##############
@@ -48,6 +56,9 @@ The pressure is define as 0, and all other fields (excepts 'time') is define as 
 ###############
 ### Drawing ###
 ###############
+Tal:
+add your changes
+
 Represent a drawing. it holding list of Strokes, which together represent a complete drawing.
 It also holding a path to the reference picture (what the participant was trying to draw), and a path to the actual
 picture that he draw.
@@ -76,14 +87,30 @@ of Drawing of all the drawing of the participant.
 
 Useful functions:
 plot_participant_pictures(): plot all the drawings of the participant (by using plot_picture() of Drawing class).
-
+export_data():  export all participant draws and graphs into "participants_output_data" folder. 
+	        calculate general means of features and write it to <participant>.txt in the same folder.
+		
 
 ################
 ### Analyzer ###
 ################
 This class including static methods for analyzing the data.
-The only method that is useful is create_drawing(path), which is kind of constructor for Drawing. It's return a new
-Drawing object. Maybe it's should be in Drawing.
+
+
+########################
+### nearest_neighbor ###
+########################
+This file include the function find_nearest_neighbor(), that getting array of 2D points (p1), and list of others arrays points 2D (neighbors),
+and find the closest array, according to our distance metric.
+Add pictures to illustration
+
+
+########################
+### simplify_cluster ###
+########################
+This file using to simplify clusters. 
+Cluster is define to be a group of Strokes, so this file getting a cluster, and make it more "simple".
+Add pictures to illustration
 
 
 ############

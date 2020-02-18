@@ -2,9 +2,7 @@ from Analyzer import Analyzer
 import os
 
 
-
 class Participant:
-
     def __init__(self, name):
         self._name = name
         self._data = self.get_all_files_of_participant()
@@ -59,7 +57,6 @@ class Participant:
         export all participant draws and graphs into "participants_output_data"
         folder. calculate general means of features and write it to
         <participant>.txt in the same folder
-        :return: none
         """
         os.mkdir("participants_output_data/" + self._name)
         text_file = open("participants_output_data/" + self._name + "/" +
@@ -91,14 +88,12 @@ class Participant:
                 speed_total_std = speed_total_std + std
                 speed_counter = speed_counter + 1
 
-
             mean, std = draw.length_vs_time(save=True,
                                            path=path+"/length_vs_time")
             if mean is not None:
                 length_total = length_total + mean
                 length_total_std = length_total_std + std
                 length_counter = length_counter + 1
-
 
             mean, std = draw.pressure_vs_time(save=True,
                                             path=path + "/pressure_vs_time")
