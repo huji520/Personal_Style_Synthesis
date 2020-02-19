@@ -11,8 +11,8 @@ from imageio import imread
 from skimage.color import rgb2gray
 import simplify_cluster
 import nearest_neighbor
-
 import os
+
 
 if __name__ == "__main__":
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
@@ -33,9 +33,7 @@ if __name__ == "__main__":
     # print(draw.strokes_angle_difference(stroke_1.T, stroke_2.T))
 
     person = Participant("aliza")
-    draws = []
-    for draw in person.get_data():
-        draws.extend(draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)[1])
+    clusters = person.simplify_all_clusters()
 
     # orig_draw, draws = draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)
 
@@ -75,28 +73,11 @@ if __name__ == "__main__":
 
 
 
-    arr = []
-    for i, draw in enumerate(draws):
-        print("{0} out of {1}".format(i, len(draws)))
-        x = []
-        y = []
-        for stroke in draw.get_data():
-            x.extend(stroke.get_feature('x'))
-            y.extend(stroke.get_feature('y'))
-
-        p = simplify_cluster.show_simplifican(x, y, i, dist=10)
-        if len(p) > 3:  # handle with very short simplify
-            arr.append(p)
 
     p1 = np.array([[487.0, 342.5], [477.25, 337.5], [462.6, 349.4], [479.3333333333333, 348.6666666666667], [499.75, 343.875], [512.4, 343.4], [523.4285714285714, 342.42857142857144], [533.0, 344.0], [548.25, 347.75], [560.0, 352.4], [604.25, 363.75], [581.6666666666666, 367.8], [571.6666666666666, 360.3333333333333], [592.0, 366.0], [608.6666666666666, 357.0]])
 
-    p = Distance.find_nearest_neighbor(p1, arr)
+    p = nearest_neighbor.find_nearest_neighbor(p1, clusters)
 
-    plt.figure(1)
-    plt.subplot(121)
-    plt.plot(p1[:,0], p1[:,1], 'o', lw=0.5, ms=2, c='b')
-    plt.subplot(122)
-    plt.plot(p[:, 0], p[:, 1], 'o', lw=0.5, ms=2, c='r')
-    plt.show()
+    Analyzer.plot_two_clusters(p1, p)
 
 

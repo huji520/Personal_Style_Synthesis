@@ -264,3 +264,12 @@ class Analyzer:
             # np.savetxt(name, np.array(stroke.get_data()).T)
             f.write("\n\n")
         f.close()
+
+    @staticmethod
+    def plot_two_clusters(p1, p2):
+        plt.figure(1)
+        plt.subplot(121)
+        plt.plot(p1[:,0], p1[:,1], 'o', lw=0.5, ms=2, c='b')
+        plt.subplot(122)
+        plt.plot(p2[:, 0], p2[:, 1], 'o', lw=0.5, ms=2, c='r')
+        plt.show()

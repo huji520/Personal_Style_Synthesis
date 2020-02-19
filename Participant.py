@@ -1,4 +1,6 @@
 from Analyzer import Analyzer
+from Drawing import Drawing
+import simplify_cluster
 import os
 
 
@@ -124,3 +126,23 @@ class Participant:
             img_counter = Analyzer.split_image_to_patches(pic_path, patch_w, patch_h, img_counter)
             print(process_counter, " out of ", len(self.get_picture_list()))
             process_counter += 1
+
+    def simplify_all_clusters(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+        clusters = []
+        for draw in self.get_data():
+            clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
+
+        arr = []
+        for i, draw in enumerate(clusters):
+            print("{0} out of {1}".format(i, len(clusters)))
+            x = []
+            y = []
+            for stroke in draw.get_data():
+                x.extend(stroke.get_feature('x'))
+                y.extend(stroke.get_feature('y'))
+
+            p = simplify_cluster.simplify_cluster(x, y, index_name, dist=10, save_pairs=False)
+            if len(p) > 3:  # handle with very short simplify
+                arr.append(p)
+
+        return arr

@@ -114,7 +114,7 @@ def calc_curve(points, dist):
     return all_curve
 
 
-def show_simplifican(x, y, i, dist):
+def simplify_cluster(x, y, index_name, dist, save_pairs=False):
     """
 
     :param x:
@@ -130,14 +130,15 @@ def show_simplifican(x, y, i, dist):
     for curve in curves:
         for point in curve:
             points.append(point)
+    if save_pairs:
+        points = np.array(points)
+        plt.figure(index_name)
+        plt.subplot(121)
+        plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
+        plt.subplot(122)
+        plt.plot(points[:, 0], points[:, 1], 'o', lw=0.5, ms=2, c='r')
+        plt.savefig(os.path.join('simplify_clusters_dist10', '{0}.png'.format(index_name)))
 
-    # points = np.array(points)
-    # plt.figure(i)
-    # plt.subplot(121)
-    # plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
-    # plt.subplot(122)
-    # plt.plot(points[:, 0], points[:, 1], 'o', lw=0.5, ms=2, c='r')
-    # plt.savefig(os.path.join('simplify_clusters_dist10', '{0}.png'.format(i)))
     return points
 
 
