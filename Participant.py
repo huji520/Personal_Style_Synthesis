@@ -141,7 +141,7 @@ class Participant:
                 x.extend(stroke.get_feature('x'))
                 y.extend(stroke.get_feature('y'))
 
-            p = simplify_cluster.simplify_cluster(x, y, index_name, dist=10, save_pairs=False)
+            p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
             if len(p) > 3:  # handle with very short simplify
                 arr.append(p)
 
