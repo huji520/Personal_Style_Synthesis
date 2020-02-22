@@ -1,8 +1,8 @@
 # Personal_Style_Synthesis
 
 ###############
-### imports ###
-###############
+### imports ### 
+############### <br />
 the following packages are required:
 1) numpy
 2) pandas
@@ -15,41 +15,41 @@ the following packages are required:
 9) PIL
 10) scipy
 
-directories:
-data: includes all the data files (.txt) and the drawings (.png) of the participants.
-ref_pics: includes all the reference pictures.
-ref_pics_crop: includes all the cropped reference pictures (with only the active pixels).
-sketch_simplification: includes files for implements sketch simplification.
-articles: includes relevants artical for our project.
-concat: includes results of the Pix2Pix network (input, label, prediction) as one picture.
-dataset: includes results of the Pix2Pix network (input, label, prediction) separte.
+directories: <br />
+data: includes all the data files (.txt) and the drawings (.png) of the participants. <br />
+ref_pics: includes all the reference pictures. <br />
+ref_pics_crop: includes all the cropped reference pictures (with only the active pixels). <br />
+sketch_simplification: includes files for implements sketch simplification. <br />
+articles: includes relevants artical for our project. <br />
+concat: includes results of the Pix2Pix network (input, label, prediction) as one picture. <br />
+dataset: includes results of the Pix2Pix network (input, label, prediction) separte. <br />
 participant_output_data: includes participant draws and graphs.
 
-Tal: 
+Tal: <br />
 clustered_draws: ?
 
 
 
 ##############
 ### Stroke ###
-##############
-This is the atomic unit it our data.
+############## <br />
+This is the atomic unit it our data. <br />
 Stroke is holding information of the time, (x,y) location and pressure of the stroke. Every one of them represent as
 np.array (each cell represent a different sampling in the current stroke).
 
-Useful functions:
-get_feature(feature_name): return the np.array that represent the given feature name.
-average(feature_array): return the average of the given feature array.
-length(): return the total geometric length of the stroke.
-time(): return the total time of the stroke.
-is_pause(): return true iff the stroke is "Pause stroke"
+Useful functions: <br />
+get_feature(feature_name): return the np.array that represent the given feature name. <br />
+average(feature_array): return the average of the given feature array. <br />
+length(): return the total geometric length of the stroke. <br />
+time(): return the total time of the stroke. <br />
+is_pause(): return true iff the stroke is "Pause stroke" 
 
-'Pause stroke':
-There is two type of Stroke: "Normal stroke", and "Pause stroke".
-"Pause stroke" is create to fill the empty space left by the Pause, so actually it's not a real data.
+'Pause stroke': <br />
+There is two type of Stroke: "Normal stroke", and "Pause stroke". <br />
+"Pause stroke" is create to fill the empty space left by the Pause, so actually it's not a real data. <br />
 By default, Stroke is define as 'normal' stroke, for creating 'Pause stroke' you need to add pause=True in the
-constructor call.
-The 'Pause stroke' is taking the total time of the pause, and divide it into pieces, with time stamps of 0.017 seconds.
+constructor call. <br />
+The 'Pause stroke' is taking the total time of the pause, and divide it into pieces, with time stamps of 0.017 seconds. <br />
 The pressure is define as 0, and all other fields (excepts 'time') is define as -1.
 
 
