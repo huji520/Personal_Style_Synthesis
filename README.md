@@ -117,8 +117,8 @@ Add pictures to illustration
 ### main ###
 ############
 
-Example 1 (Using Drawing object to plot graph):
-input_path = "data/D_01/aliza/aliza__130319_0935_D_01.txt"  # path to data file
+Example 1 (Using Drawing object to plot graph): \n
+input_path = "data/D_01/aliza/aliza__130319_0935_D_01.txt"  # path to data file \n
 draw = Analyzer.create_drawing(input_path)  # creating Drawing object
 draw.speed_vs_time(pause=True)  # plot speed vs time, with pauses.
 draw.length_vs_time()  # plot length vs time, without pauses.
