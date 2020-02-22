@@ -28,8 +28,8 @@ participant_output_data: includes participant draws and graphs.
 Tal: <br />
 clustered_draws: ?
 
-
-
+<br /> 
+<br />
 ### Stroke ###
 This is the atomic unit it our data. <br />
 Stroke is holding information of the time, (x,y) location and pressure of the stroke. Every one of them represent as
@@ -50,8 +50,8 @@ constructor call. <br />
 The 'Pause stroke' is taking the total time of the pause, and divide it into pieces, with time stamps of 0.017 seconds. <br />
 The pressure is define as 0, and all other fields (excepts 'time') is define as -1.
 
-
-
+<br /> 
+<br />
 ### Drawing ###
 Tal: <br />
 add your changes
@@ -76,8 +76,8 @@ and if you want to see them, just call the functions with: pause=True in the par
 plot_picture(): In progress. Should plot the reference picture and the actual drawing, in the same resolution. <br />
 plot_crop_image(): plot the picture with only the active pixels area
 
-
-
+<br /> 
+<br />
 ### Participant ###
 Represent a participant. The constructor get the name of the participant (for example: 'aliza') and it holding a list
 of Drawing of all the drawing of the participant.
@@ -87,26 +87,26 @@ plot_participant_pictures(): plot all the drawings of the participant (by using 
 export_data():  export all participant draws and graphs into "participants_output_data" folder. <br />
 	        calculate general means of features and write it to <participant>.txt in the same folder.
 		
-
-
+<br /> 
+<br />
 ### Analyzer ###
 This class including static methods for analyzing the data.
 
-
-
+<br /> 
+<br />
 ### nearest_neighbor ###
 This file include the function find_nearest_neighbor(), that getting array of 2D points (p1), and list of others arrays points 2D (neighbors), and find the closest array, according to our distance metric. <br />
 TODO: Add pictures to illustration
 
-
-
+<br /> 
+<br />
 ### simplify_cluster ###
 This file using to simplify clusters. <br />
 Cluster is define to be a group of Strokes, so this file getting a cluster, and make it more "simple". <br />
 TODO: Add pictures to illustration
 
-
-
+<br /> 
+<br />
 ### main ###
 Example 1 (Using Drawing object to plot graph): <br />
 input_path = "data/D_01/aliza/aliza__130319_0935_D_01.txt"  # path to data file <br />
