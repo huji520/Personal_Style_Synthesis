@@ -1,6 +1,7 @@
 # Personal_Style_Synthesis
 
 
+
 ### imports ###
 the following packages are required:
 1) numpy
@@ -28,6 +29,7 @@ Tal: <br />
 clustered_draws: ?
 
 
+
 ### Stroke ###
 This is the atomic unit it our data. <br />
 Stroke is holding information of the time, (x,y) location and pressure of the stroke. Every one of them represent as
@@ -47,6 +49,7 @@ By default, Stroke is define as 'normal' stroke, for creating 'Pause stroke' you
 constructor call. <br />
 The 'Pause stroke' is taking the total time of the pause, and divide it into pieces, with time stamps of 0.017 seconds. <br />
 The pressure is define as 0, and all other fields (excepts 'time') is define as -1.
+
 
 
 ### Drawing ###
@@ -74,6 +77,7 @@ plot_picture(): In progress. Should plot the reference picture and the actual dr
 plot_crop_image(): plot the picture with only the active pixels area
 
 
+
 ### Participant ###
 Represent a participant. The constructor get the name of the participant (for example: 'aliza') and it holding a list
 of Drawing of all the drawing of the participant.
@@ -84,8 +88,10 @@ export_data():  export all participant draws and graphs into "participants_outpu
 	        calculate general means of features and write it to <participant>.txt in the same folder.
 		
 
+
 ### Analyzer ###
 This class including static methods for analyzing the data.
+
 
 
 ### nearest_neighbor ###
@@ -93,10 +99,12 @@ This file include the function find_nearest_neighbor(), that getting array of 2D
 TODO: Add pictures to illustration
 
 
+
 ### simplify_cluster ###
 This file using to simplify clusters. <br />
 Cluster is define to be a group of Strokes, so this file getting a cluster, and make it more "simple". <br />
 TODO: Add pictures to illustration
+
 
 
 ### main ###
