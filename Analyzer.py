@@ -266,15 +266,27 @@ class Analyzer:
         f.close()
 
     @staticmethod
-    def plot_clusters(orig, simplify_cluster, style_cluster):
+    def plot_clusters(orig, simplify_cluster, style_cluster, scatter=True):
         plt.figure(1)
-        plt.subplot(131)
-        plt.title("orig")
-        plt.plot(orig[:,0], orig[:,1], 'o', lw=0.5, ms=2, c='b')
-        plt.subplot(132)
-        plt.title("simplify_cluster")
-        plt.plot(simplify_cluster[:, 0], simplify_cluster[:, 1], 'o', lw=0.5, ms=2, c='r')
-        plt.subplot(133)
-        plt.title("style_cluster")
-        plt.plot(style_cluster[:, 0], style_cluster[:, 1], 'o', lw=0.5, ms=2, c='g')
-        plt.show()
+        if scatter:
+            plt.subplot(131)
+            plt.title("orig")
+            plt.plot(orig[:,0], orig[:,1], 'o', lw=0.5, ms=2, c='b')
+            plt.subplot(132)
+            plt.title("simplify_cluster")
+            plt.plot(simplify_cluster[:, 0], simplify_cluster[:, 1], 'o', lw=0.5, ms=2, c='r')
+            plt.subplot(133)
+            plt.title("style_cluster")
+            plt.plot(style_cluster[:, 0], style_cluster[:, 1], 'o', lw=0.5, ms=2, c='g')
+            plt.show()
+        else:
+            plt.subplot(131)
+            plt.title("orig")
+            plt.plot(orig[:, 0], orig[:, 1], c='b', linewidth=0.6)
+            plt.subplot(132)
+            plt.title("simplify_cluster")
+            plt.plot(simplify_cluster[:, 0], simplify_cluster[:, 1], c='b', linewidth=0.6)
+            plt.subplot(133)
+            plt.title("style_cluster")
+            plt.plot(style_cluster[:, 0], style_cluster[:, 1], c='b', linewidth=0.6)
+            plt.show()

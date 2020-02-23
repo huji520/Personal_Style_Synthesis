@@ -29,7 +29,7 @@ def searching_match_on_person(person_name, p1, load=True, euc_dist_threshold=10,
         pickle.dump(style_clusters, open(style_path, "wb"))
 
     p, i = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
-    Analyzer.plot_clusters(p1, p, style_clusters[i])
+    Analyzer.plot_clusters(orig=p1, simplify_cluster=p, style_cluster=style_clusters[i], scatter=True)
 
 
 def plot_clustering(input_txt_path, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
@@ -70,8 +70,10 @@ if __name__ == "__main__":
     # plot_simplify(input1, euc_dist_threshold=10, dist_threshold=10, ang_threshold=0.5)
     # ####################
 
-    # @TODO: map[simplify] = cluster
+    # @TODO: map[simplify] = cluster - done (in other way)
     # @TODO: replacing function
+    # @TODO: problem with lines between points (order)
+
 
 
 
