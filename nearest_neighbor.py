@@ -45,17 +45,19 @@ def find_nearest_neighbor(p1, neighbors):
     :param neighbors: array of arrays of 2D points 2D
     :return: the nearest neighbor (array of 2D points)
     """
+    index = 0
     p1 = normalize_points(p1)
     nearest_neighbor = None
     min_score = 10000000
-    for p in neighbors:
+    for i, p in enumerate(neighbors):
         normalize_p = normalize_points(p.copy())
         error = calc_error(p1, normalize_p)
         if error < min_score:
             min_score = error
             nearest_neighbor = normalize_p
+            index = i
 
-    return nearest_neighbor
+    return nearest_neighbor, index
 
 
 def normalize_points(points):

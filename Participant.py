@@ -2,6 +2,7 @@ from Analyzer import Analyzer
 from Drawing import Drawing
 import simplify_cluster
 import os
+import numpy as np
 
 
 class Participant:
@@ -132,7 +133,8 @@ class Participant:
         for draw in self.get_data():
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
 
-        arr = []
+        simplify_clusters = []
+        style_clusters = []
         for i, draw in enumerate(clusters):
             print("{0} out of {1}".format(i, len(clusters)))
             x = []
@@ -143,6 +145,7 @@ class Participant:
 
             p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
             if len(p) > 3:  # handle with very short simplify
-                arr.append(p)
+                simplify_clusters.append(p)
+                style_clusters.append(np.stack((x, y), axis=1))
 
-        return arr
+        return simplify_clusters, style_clusters

@@ -16,17 +16,20 @@ import pickle
 
 
 def searching_match_on_person(person_name, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-    path = os.path.join("pickle", "{0}_{1}_{2}_{3}.p".format(person_name, euc_dist_threshold,
-                                                               dist_threshold, ang_threshold))
+    base_path = "{0}_{1}_{2}_{3}.p".format(person_name, euc_dist_threshold, dist_threshold, ang_threshold)
+    simplify_path = os.path.join("pickle", "simplify", base_path)
+    style_path = os.path.join("pickle", "style", base_path)
     if load:
-        clusters = pickle.load(open(path, "rb"))
+        simplify_clusters = pickle.load(open(simplify_path, "rb"))
+        style_clusters = pickle.load(open(style_path, "rb"))
     else:
         person = Participant(person_name)
-        clusters = person.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
-        pickle.dump(clusters, open(path, "wb"))
+        simplify_clusters, style_clusters = person.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
+        pickle.dump(simplify_clusters, open(simplify_path, "wb"))
+        pickle.dump(style_clusters, open(style_path, "wb"))
 
-    p = nearest_neighbor.find_nearest_neighbor(p1, clusters)
-    Analyzer.plot_two_clusters(p1, p)
+    p, i = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
+    Analyzer.plot_clusters(p1, p, style_clusters[i])
 
 
 def plot_clustering(input_txt_path, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
@@ -57,15 +60,15 @@ if __name__ == "__main__":
     # plot_clustering(input1, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)
     # #####################
 
-    # #####################
-    # p1 = np.array([[487.0, 342.5], [477.25, 337.5], [462.6, 349.4], [479.3333333333333, 348.6666666666667], [499.75, 343.875], [512.4, 343.4], [523.4285714285714, 342.42857142857144], [533.0, 344.0], [548.25, 347.75], [560.0, 352.4], [604.25, 363.75], [581.6666666666666, 367.8], [571.6666666666666, 360.3333333333333], [592.0, 366.0], [608.6666666666666, 357.0]])
-    # searching_match_on_person("aliza", p1, load=False)
-    # #####################
+    #####################
+    p1 = np.array([[487.0, 342.5], [477.25, 337.5], [462.6, 349.4], [479.3333333333333, 348.6666666666667], [499.75, 343.875], [512.4, 343.4], [523.4285714285714, 342.42857142857144], [533.0, 344.0], [548.25, 347.75], [560.0, 352.4], [604.25, 363.75], [581.6666666666666, 367.8], [571.6666666666666, 360.3333333333333], [592.0, 366.0], [608.6666666666666, 357.0]])
+    searching_match_on_person("aliza", p1, load=True)
+    #####################
 
-    ####################
-    input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
-    plot_simplify(input1, euc_dist_threshold=10, dist_threshold=10, ang_threshold=0.5)
-    ####################
+    # ####################
+    # input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
+    # plot_simplify(input1, euc_dist_threshold=10, dist_threshold=10, ang_threshold=0.5)
+    # ####################
 
     # @TODO: map[simplify] = cluster
     # @TODO: replacing function
