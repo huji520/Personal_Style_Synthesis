@@ -416,3 +416,12 @@ class Drawing:
                      linewidth=3 * stroke.average('pressure'),
                      color='black')
         plt.show()
+
+
+    def shift_x(self, shift):
+        for stroke in self._data:
+            stroke.set_x(shift)
+
+    def shift_y(self, shift):
+        for stroke in self._data:
+            stroke.set_y(shift)

@@ -105,3 +105,9 @@ class Stroke:
             time += (time_array[i] - time_array[i-1])
 
         return time
+
+    def set_x(self, shift):
+        self._data[Constants.X] += shift
+
+    def set_y(self, shift):
+        self._data[Constants.Y] += shift

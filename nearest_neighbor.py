@@ -46,18 +46,21 @@ def find_nearest_neighbor(p1, neighbors):
     :return: the nearest neighbor (array of 2D points)
     """
     index = 0
-    p1 = normalize_points(p1)
+    p1, x_shift, y_shift = normalize_points(p1)
+    n_x_shift, n_y_shift = 0, 0
     nearest_neighbor = None
     min_score = 10000000
     for i, p in enumerate(neighbors):
-        normalize_p = normalize_points(p.copy())
+        normalize_p, temp_n_x_shift, temp_n_y_shift = normalize_points(p.copy())
         error = calc_error(p1, normalize_p)
         if error < min_score:
             min_score = error
             nearest_neighbor = normalize_p
             index = i
+            n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
 
-    return nearest_neighbor, index
+
+    return nearest_neighbor, index, n_x_shift - x_shift, n_y_shift - y_shift
 
 
 def normalize_points(points):
@@ -71,4 +74,4 @@ def normalize_points(points):
     y_shift = np.min(points[:, 1])
     points[:, 0] -= x_shift
     points[:, 1] -= y_shift
-    return points
+    return points, x_shift, y_shift
