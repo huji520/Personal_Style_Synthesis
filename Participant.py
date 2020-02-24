@@ -9,6 +9,7 @@ class Participant:
     def __init__(self, name):
         self._name = name
         self._data = self.get_all_files_of_participant()
+        self.clusters = []
 
     def get_data(self):
         return self._data[0]
@@ -132,6 +133,7 @@ class Participant:
         clusters = []
         for draw in self.get_data():
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
+        self.clusters = clusters
 
         simplify_clusters = []
         style_clusters = []
@@ -147,5 +149,8 @@ class Participant:
             if len(p) > 3:  # handle with very short simplify
                 simplify_clusters.append(p)
                 style_clusters.append(np.stack((x, y), axis=1))
+            else:
+                simplify_clusters.append([[0,0], [5000,5000]])
+                style_clusters.append([[0,0], [5000,5000]])
 
         return simplify_clusters, style_clusters
