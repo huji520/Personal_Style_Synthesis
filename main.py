@@ -13,6 +13,7 @@ import simplify_cluster
 import nearest_neighbor
 import os
 import pickle
+import Constants
 import copy
 
 
@@ -71,21 +72,32 @@ def get_simplified_draw(clusters):
             y.extend(stroke.get_feature('y'))
 
         p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
-        if len(p) > 3:  # handle with very short simplify
-            simplified_clusters.append(p)
+        simplified_clusters.append(p)
 
     return simplified_clusters
 
 
 def replace_cluster_with_cluster(draw):
     clusters = draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)[1]
-    clusters[0].plot_picture()
-    simplified_clusters = get_simplified_draw(clusters)
-    clusters[0], x_shift, y_shift = searching_match_on_person("aliza", np.array(simplified_clusters[0]), load=True)
-    clusters[0].shift_x(x_shift)
-    clusters[0].shift_y(y_shift)
 
-    clusters[0].plot_picture()
+
+    simplified_clusters = get_simplified_draw(clusters)
+    for i in range(len(clusters)):
+        print("{0} out of {1}".format(i, len(clusters)))
+        clusters[i], x_shift, y_shift = searching_match_on_person("aliza", np.array(simplified_clusters[i]), load=True)
+        clusters[i].shift_x(x_shift)
+        clusters[i].shift_y(y_shift)
+
+
+    strokes = []
+    for cluster in clusters:
+        strokes.extend(cluster.get_data())
+    rebuilt_draw = Drawing(strokes, clusters[0].get_ref_path(), clusters[0].get_pic_path())
+    # pickle.dump(rebuilt_draw, open("rebuilt_draw.p", "wb"))
+    # pickle.dump(clusters, open("clusters.p", "wb"))
+    rebuilt_draw.plot_picture()
+
+
 
 
 
@@ -115,7 +127,7 @@ if __name__ == "__main__":
     ####################
 
 
-    replace_cluster_with_cluster(Analyzer.create_drawing(input2))
+    replace_cluster_with_cluster(Analyzer.create_drawing(input1))
     # plot_clustering(input1, euc_dist_threshold=30)
 
     # @TODO: map[simplify] = cluster - done (in other way)
