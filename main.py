@@ -38,7 +38,7 @@ def searching_match_on_person(person_name, p1, load=True, euc_dist_threshold=10,
     # Analyzer.plot_clusters(orig=p1, simplify_cluster=p, style_cluster=style_clusters[i], scatter=True)
     # person_clusters[i].shift_x(x_shift)
     # person_clusters[i].shift_y(y_shift)
-    return person_clusters[i], x_shift, y_shift
+    return simplify_clusters[i], person_clusters[i], x_shift, y_shift
 
 
 
@@ -72,6 +72,9 @@ def get_simplified_draw(clusters):
             y.extend(stroke.get_feature('y'))
 
         p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
+        if (len(p) == 0):
+            simplified_clusters.append([[0,0]])
+            continue
         simplified_clusters.append(p)
 
     return simplified_clusters
@@ -84,10 +87,26 @@ def replace_cluster_with_cluster(draw):
     simplified_clusters = get_simplified_draw(clusters)
     for i in range(len(clusters)):
         print("{0} out of {1}".format(i, len(clusters)))
-        clusters[i], x_shift, y_shift = searching_match_on_person("aliza", np.array(simplified_clusters[i]), load=True)
+        # if i == 8:
+        #     clusters[i].plot_picture()
+        #     plt.plot(np.array(simplified_clusters[i])[:,0], np.array(simplified_clusters[i])[:,1])
+        #     plt.show()
+        neighbor_simplified, clusters[i], x_shift, y_shift = searching_match_on_person("aliza",
+                                                                                   np.array(simplified_clusters[i]),
+                                                                    load=True)
+        # if i == 8:
+        #     clusters[i].plot_picture()
+        #     plt.plot(np.array(neighbor_simplified)[:, 0], np.array(neighbor_simplified)[:, 1])
+        #     plt.show()
+        #     print(x_shift)
+        #     print(y_shift)
+
+
         clusters[i].shift_x(x_shift)
         clusters[i].shift_y(y_shift)
 
+        # if i == 8:
+        #     clusters[i].plot_picture()
 
     strokes = []
     for cluster in clusters:
@@ -116,10 +135,10 @@ if __name__ == "__main__":
     # plot_clustering(input1, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)
     # #####################
 
-    # #####################
+    #####################
     # p1 = np.array([[487.0, 342.5], [477.25, 337.5], [462.6, 349.4], [479.3333333333333, 348.6666666666667], [499.75, 343.875], [512.4, 343.4], [523.4285714285714, 342.42857142857144], [533.0, 344.0], [548.25, 347.75], [560.0, 352.4], [604.25, 363.75], [581.6666666666666, 367.8], [571.6666666666666, 360.3333333333333], [592.0, 366.0], [608.6666666666666, 357.0]])
-    # searching_match_on_person("aliza", p1, load=True)
-    # #####################
+    # searching_match_on_person("aliza", p1, load=False)
+    #####################
 
     ####################
     # input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
@@ -127,16 +146,10 @@ if __name__ == "__main__":
     ####################
 
 
-    replace_cluster_with_cluster(Analyzer.create_drawing(input1))
+    replace_cluster_with_cluster(Analyzer.create_drawing(input2))
     # plot_clustering(input1, euc_dist_threshold=30)
 
     # @TODO: map[simplify] = cluster - done (in other way)
     # @TODO: replacing function
     # @TODO: problem with lines between points (order)
-
-
-
-
-
-
 

@@ -59,6 +59,7 @@ def find_nearest_neighbor(p1, neighbors):
             index = i
             n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
 
+
     return nearest_neighbor, index, x_shift - n_x_shift, y_shift - n_y_shift
 
 

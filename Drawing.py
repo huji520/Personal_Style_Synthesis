@@ -422,6 +422,7 @@ class Drawing:
         for stroke in self._data:
             stroke.set_x(shift)
 
+
     def shift_y(self, shift):
         for stroke in self._data:
             stroke.set_y(shift)
