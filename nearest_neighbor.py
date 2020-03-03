@@ -20,19 +20,29 @@ def calc_error(p1, p2):
     :param p2: array of 2D points
     :return: the error (float)
     """
-    error1 = 0
-    for point1 in p1:
-        min_dist = 1000000
-        for point2 in p2:
-            min_dist = min(min_dist, l2(point1, point2))
-        error1 += min_dist
+    # error1 = 0
+    # for point1 in p1:
+    #     min_dist = 1000000
+    #     for point2 in p2:
+    #         min_dist = min(min_dist, l2(point1, point2))
+    #     error1 += min_dist
 
-    error2 = 0
-    for point2 in p2:
-        min_dist = 10000000
-        for point1 in p1:
-            min_dist = min(min_dist, l2(point1, point2))
-        error2 += min_dist
+    pt1 = np.array(p1)  # NxD, here D=2
+    pt2 = np.array(p2)  # MxD
+    d = pt1[:, None, :] - pt2[None, :, :]  # pairwise subtraction, NxMxD
+    d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
+    error1 = np.sqrt(d).sum()  # output, scalar
+
+    # error2 = 0
+    # for point2 in p2:
+    #     min_dist = 10000000
+    #     for point1 in p1:
+    #         min_dist = min(min_dist, l2(point1, point2))
+    #     error2 += min_dist
+
+    d = pt2[:, None, :] - pt1[None, :, :]  # pairwise subtraction, NxMxD
+    d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
+    error2 = np.sqrt(d).sum()  # output, scalar
 
     return (error1 + error2) / (len(p1) + len(p2))
 
@@ -48,19 +58,17 @@ def find_nearest_neighbor(p1, neighbors):
     index = 0
     p1, x_shift, y_shift = normalize_points(p1)
     n_x_shift, n_y_shift = 0, 0
-    nearest_neighbor = None
     min_score = 10000000
     for i, p in enumerate(neighbors):
         normalize_p, temp_n_x_shift, temp_n_y_shift = normalize_points(p.copy())
         error = calc_error(p1, normalize_p)
         if error < min_score:
             min_score = error
-            nearest_neighbor = normalize_p
             index = i
             n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
 
-
-    return nearest_neighbor, index, x_shift - n_x_shift, y_shift - n_y_shift
+    print("min score: ", min_score)
+    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 20
 
 
 def normalize_points(points):

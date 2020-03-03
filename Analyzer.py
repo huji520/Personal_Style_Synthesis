@@ -290,3 +290,5 @@ class Analyzer:
             plt.title("style_cluster")
             plt.plot(style_cluster[:, 0], style_cluster[:, 1], c='b', linewidth=0.6)
             plt.show()
+
+

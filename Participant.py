@@ -3,6 +3,8 @@ from Drawing import Drawing
 import simplify_cluster
 import os
 import numpy as np
+import pickle
+import nearest_neighbor
 
 
 class Participant:
@@ -133,10 +135,10 @@ class Participant:
         clusters = []
         for draw in self.get_data():
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
-        self.clusters = clusters
 
+        self.clusters = clusters
         simplify_clusters = []
-        style_clusters = []
+
         for i, draw in enumerate(clusters):
             print("{0} out of {1}".format(i, len(clusters)))
             x = []
@@ -148,9 +150,31 @@ class Participant:
             p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
             if len(p) > 3:  # handle with very short simplify
                 simplify_clusters.append(p)
-                style_clusters.append(np.stack((x, y), axis=1))
             else:
                 simplify_clusters.append([[0,0], [5000,5000]])
-                style_clusters.append([[0,0], [5000,5000]])
 
-        return simplify_clusters, style_clusters
+        return simplify_clusters
+
+
+    def create_dict(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+        base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
+        simplify_path = os.path.join("pickle", "simplify", base_path)
+        person_clusters_path = os.path.join("pickle", "clusters", base_path)
+        simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
+        person_clusters = self.clusters
+        pickle.dump(simplify_clusters, open(simplify_path, "wb"))
+        pickle.dump(person_clusters, open(person_clusters_path, "wb"))
+        return simplify_cluster, person_clusters
+
+    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+        base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
+        simplify_path = os.path.join("pickle", "simplify", base_path)
+        person_clusters_path = os.path.join("pickle", "clusters", base_path)
+        if load:
+            simplify_clusters = pickle.load(open(simplify_path, "rb"))
+            person_clusters = pickle.load((open(person_clusters_path, "rb")))
+        else:
+            simplify_clusters, person_clusters = self.create_dict()
+
+        i, x_shift, y_shift, match = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
+        return person_clusters[i], x_shift, y_shift, match
