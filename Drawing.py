@@ -203,7 +203,7 @@ class Drawing:
 
         return img, img_ref
 
-    def plot_picture(self, show_reference=False):
+    def plot_picture(self, show_reference=False, show_clusters=False):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
@@ -215,26 +215,31 @@ class Drawing:
         # drawing
         plt.figure(figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            if stroke._color == 0:
-                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='black')
-            elif stroke._color == 1:
-                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='red')
-            elif stroke._color == 2:
-                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='blue')
-            elif stroke._color == 3:
-                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='green')
+            if show_clusters:
+                if stroke._color == 0:
+                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                             linewidth=3 * stroke.average('pressure'),
+                             color='black')
+                elif stroke._color == 1:
+                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                             linewidth=3 * stroke.average('pressure'),
+                             color='red')
+                elif stroke._color == 2:
+                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                             linewidth=3 * stroke.average('pressure'),
+                             color='blue')
+                elif stroke._color == 3:
+                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                             linewidth=3 * stroke.average('pressure'),
+                             color='green')
+                else:
+                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                             linewidth=3 * stroke.average('pressure'),
+                             color='purple')
             else:
-                plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='purple')
+                plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
+                         linewidth=3 * stroke.average('pressure'))
+
         plt.gca().invert_yaxis()
 
         # reference
@@ -341,7 +346,7 @@ class Drawing:
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length() <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()] # <= 250]
         # print(data)
         counter = 0
         while len(data) is not 0:
