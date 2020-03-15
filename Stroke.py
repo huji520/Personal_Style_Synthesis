@@ -1,5 +1,6 @@
 import Constants
 import numpy as np
+import Analyzer
 
 
 class Stroke:
