@@ -215,31 +215,31 @@ class Drawing:
         # drawing
         plt.figure(figsize=(f * 2.5, f * h))
         for stroke in self._data:
+            avg_pressure = stroke.average('pressure') if stroke.average('pressure') > 0 else 0.3
             if show_clusters:
                 if stroke._color == 0:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * stroke.average('pressure'),
+                             linewidth=5 * avg_pressure,
                              color='black')
                 elif stroke._color == 1:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * stroke.average('pressure'),
+                             linewidth=5 * avg_pressure,
                              color='red')
                 elif stroke._color == 2:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * stroke.average('pressure'),
+                             linewidth=3 * avg_pressure,
                              color='blue')
                 elif stroke._color == 3:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * stroke.average('pressure'),
+                             linewidth=5 * avg_pressure,
                              color='green')
                 else:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * stroke.average('pressure'),
+                             linewidth=5 * avg_pressure,
                              color='purple')
             else:
                 plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'),
-                         color='black')
+                         linewidth=3 * avg_pressure, color='black')
 
         plt.gca().invert_yaxis()
 
@@ -347,7 +347,7 @@ class Drawing:
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()] # <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause()] # and 30 <= stroke.length()] # <= 250]
         # print(data)
         counter = 0
         while len(data) is not 0:

@@ -84,7 +84,7 @@ def plot_simplify(input_txt_path, euc_dist_threshold=10, dist_threshold=5, ang_t
 #     rebuilt_draw.plot_picture()
 
 
-def get_simplified_draw(clusters):
+def get_simplified_draw(clusters, already_simplified=False):
     simplified_clusters = []
 
     for i, draw in enumerate(clusters):
@@ -94,8 +94,10 @@ def get_simplified_draw(clusters):
         for stroke in draw.get_data():
             x.extend(stroke.get_feature('x'))
             y.extend(stroke.get_feature('y'))
-
-        p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
+        if already_simplified:
+            p = np.stack((x,y), axis=1)
+        else:
+            p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
         if len(p) == 0:
             simplified_clusters.append(np.stack((x,y), axis=1))
             continue
@@ -104,7 +106,7 @@ def get_simplified_draw(clusters):
     return simplified_clusters
 
 
-def transfer_style(draw, person_name, load_person=False, load_dict=True):
+def transfer_style(draw, person_name, load_person=False, load_dict=True, already_simplified=False):
     """
     generate a draw with the style of the given person name
     :param draw: a draw of some participant
@@ -119,10 +121,10 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True):
         pickle.dump(participant, open(os.path.join(pickle_path, "{0}.p".format(person_name)), "wb"))
 
     clusters = draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.51)[1]
-    simplified_clusters = get_simplified_draw(clusters)
+    simplified_clusters = get_simplified_draw(clusters, already_simplified=already_simplified)
 
     if not load_dict:
-        participant.create_dict(ang_threshold=0.51)
+        participant.create_dict(ang_threshold=0.5)
 
     for i in range(len(clusters)):
         print("{0} out of {1}".format(i, len(clusters)))
@@ -160,6 +162,9 @@ if __name__ == "__main__":
     input9 = "data/D_01/dudi/dudi__140519_1225_D_01.txt"
     input10 = "data/D_01/elchanan/elchanan__030419_1910_D_01.txt"
 
+    input_banana = "example_input/testdata banana.txt"
+    input_fish = "example_input/testdata fish.txt"
+
     inputs = [input4, input5, input6, input7, input8, input9, input10]
     new_draws = []
 
@@ -170,32 +175,25 @@ if __name__ == "__main__":
     # for new_draw in new_draws:
     #     new_draw.plot_picture(show_clusters=True)
 
-    # draw = Analyzer.create_drawing(input9)
-    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True)
-    # new_draw.plot_picture(show_clusters=False)
-
-    # participant = Participant('aliza')
+    draw = Analyzer.create_drawing(input_fish, orig_data=False)
+    # draw.plot_picture()
+    # participant = Participant("aliza")
     # participant.create_dict(ang_threshold=0.52)
+    new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
+    new_draw.plot_picture(show_clusters=False)
 
-    import matplotlib.pyplot as plt
 
-    draw = Analyzer.create_drawing(input1)
-    draw.rotate(20)
-
-    draw.plot_picture()
-
-    # points = np.array([[1, 1], [2, 2], [5, 5]]).astype(np.float)
-    # plt.subplot(121)
-    # plt.title("before rotate")
-    # plt.plot(points[:, 0], points[:, 1])
+    # clusters = draw.group_strokes(euc_dist_threshold=50, dist_threshold=5, ang_threshold=0.51)[1]
+    # strokes = []
+    # for cluster in clusters:
+    #     strokes.extend(cluster.get_data())
+    # rebuilt_draw = Drawing(strokes, clusters[0].get_ref_path(), clusters[0].get_pic_path())
     #
-    # for i, point in enumerate(points):
-    #     points[i] = rotate(point, np.deg2rad(-30))
-    #
-    # plt.subplot(122)
-    # plt.title("after rotate")
-    # plt.plot(points[:, 0], points[:, 1])
-    # print(points)
-    # plt.show()
+    # rebuilt_draw.plot_picture(show_clusters=True)
+
+    # draw.plot_simplify_drawing()
 
 
+    # participant = Participant("aliza")
+    # participant = pickle.load(open('aliza.p', 'rb'))
+    # participant.plot_participant_pictures()

@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pickle
 import nearest_neighbor
+import matplotlib.pyplot as plt
 
 
 class Participant:
@@ -46,6 +47,7 @@ class Participant:
                                     lst.append(drawing)
                                 else:
                                     print("Error: missing data")
+                                    print(path)
                             else:
                                 print("Error: missing data")
 
@@ -55,8 +57,10 @@ class Participant:
         """
         plot all the participant pictures
         """
-        for drawing in self._data[0]:
+        for i, drawing in enumerate(self._data[0]):
+            # plt.subplot(2,2,i + 1)
             drawing.plot_picture()
+            plt.savefig(f"aliza_figs/{i}.png")
 
     def export_data(self):
         """
@@ -133,7 +137,9 @@ class Participant:
 
     def simplify_all_clusters(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
         clusters = []
-        for draw in self.get_data():
+
+        for j, draw in enumerate(self.get_data()):
+            print("{0} out of {1}".format(j, len(self.get_data())))
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
 
         self.clusters = clusters
@@ -162,11 +168,15 @@ class Participant:
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
         simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
         person_clusters = self.clusters
+        simplify_clusters.extend(self.simplify_all_clusters(50, 10, 0.5))
+        person_clusters.extend(self.clusters)
+        simplify_clusters.extend(self.simplify_all_clusters(25, 7, 0.5))
+        person_clusters.extend(self.clusters)
         pickle.dump(simplify_clusters, open(simplify_path, "wb"))
         pickle.dump(person_clusters, open(person_clusters_path, "wb"))
         return simplify_cluster, person_clusters
 
-    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.51):
         base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
