@@ -170,8 +170,32 @@ if __name__ == "__main__":
     # for new_draw in new_draws:
     #     new_draw.plot_picture(show_clusters=True)
 
-    draw = Analyzer.create_drawing(input9)
-    new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True)
-    new_draw.plot_picture(show_clusters=False)
+    # draw = Analyzer.create_drawing(input9)
+    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True)
+    # new_draw.plot_picture(show_clusters=False)
+
+    # participant = Participant('aliza')
+    # participant.create_dict(ang_threshold=0.52)
+
+    import matplotlib.pyplot as plt
+
+    draw = Analyzer.create_drawing(input1)
+    draw.rotate(20)
+
+    draw.plot_picture()
+
+    # points = np.array([[1, 1], [2, 2], [5, 5]]).astype(np.float)
+    # plt.subplot(121)
+    # plt.title("before rotate")
+    # plt.plot(points[:, 0], points[:, 1])
+    #
+    # for i, point in enumerate(points):
+    #     points[i] = rotate(point, np.deg2rad(-30))
+    #
+    # plt.subplot(122)
+    # plt.title("after rotate")
+    # plt.plot(points[:, 0], points[:, 1])
+    # print(points)
+    # plt.show()
 
 

@@ -238,7 +238,8 @@ class Drawing:
                              color='purple')
             else:
                 plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
-                         linewidth=3 * stroke.average('pressure'))
+                         linewidth=3 * stroke.average('pressure'),
+                         color='black')
 
         plt.gca().invert_yaxis()
 
@@ -431,3 +432,7 @@ class Drawing:
     def shift_y(self, shift):
         for stroke in self._data:
             stroke.set_y(shift)
+
+    def rotate(self, angle):
+        for stroke in self._data:
+            stroke.rotate(angle)

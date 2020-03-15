@@ -1,5 +1,5 @@
 import Constants
-import Analyzer
+import numpy as np
 
 
 class Stroke:
@@ -111,3 +111,16 @@ class Stroke:
 
     def set_y(self, shift):
         self._data[Constants.Y] += shift
+
+    def rotate(self, angle):
+        """
+        roatate the stroke in the given angle
+        :param angle: degrees (int)
+        """
+        angle = np.deg2rad(angle)
+        points = np.stack((self._data[Constants.X], self._data[Constants.Y]), axis=1)
+        for i, point in enumerate(points):
+            points[i] = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]) @ point
+
+        self._data[Constants.X] = points[:, 0]
+        self._data[Constants.Y] = points[:, 1]
