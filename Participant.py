@@ -161,22 +161,17 @@ class Participant:
 
         return simplify_clusters
 
-
     def create_dict(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
         base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
         simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
         person_clusters = self.clusters
-        simplify_clusters.extend(self.simplify_all_clusters(50, 10, 0.5))
-        person_clusters.extend(self.clusters)
-        simplify_clusters.extend(self.simplify_all_clusters(25, 7, 0.5))
-        person_clusters.extend(self.clusters)
         pickle.dump(simplify_clusters, open(simplify_path, "wb"))
         pickle.dump(person_clusters, open(person_clusters_path, "wb"))
         return simplify_cluster, person_clusters
 
-    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.51):
+    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
         base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
@@ -186,5 +181,5 @@ class Participant:
         else:
             simplify_clusters, person_clusters = self.create_dict()
 
-        i, x_shift, y_shift, match = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
-        return person_clusters[i], x_shift, y_shift, match
+        i, x_shift, y_shift, match, error, angle, x, y = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
+        return person_clusters[i], x_shift, y_shift, match, error, angle, x, y

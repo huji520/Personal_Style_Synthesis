@@ -296,4 +296,15 @@ class Analyzer:
             plt.plot(style_cluster[:, 0], style_cluster[:, 1], c='b', linewidth=0.6)
             plt.show()
 
+    @staticmethod
+    def rotate(points, angle):
+        """
+        roatate the stroke in the given angle
+        :param points: array of 2D points
+        :param angle: degrees (int)
+        """
+        angle = np.deg2rad(angle)
+        for i, point in enumerate(points):
+            points[i] = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]) @ point
 
+        return points
