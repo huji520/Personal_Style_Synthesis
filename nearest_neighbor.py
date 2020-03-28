@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from Analyzer import Analyzer
 
 
 def l2(p1, p2):
@@ -20,25 +21,11 @@ def calc_error(p1, p2):
     :param p2: array of 2D points
     :return: the error (float)
     """
-    # error1 = 0
-    # for point1 in p1:
-    #     min_dist = 1000000
-    #     for point2 in p2:
-    #         min_dist = min(min_dist, l2(point1, point2))
-    #     error1 += min_dist
-
     pt1 = np.array(p1)  # NxD, here D=2
     pt2 = np.array(p2)  # MxD
     d = pt1[:, None, :] - pt2[None, :, :]  # pairwise subtraction, NxMxD
     d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
     error1 = np.sqrt(d).sum()  # output, scalar
-
-    # error2 = 0
-    # for point2 in p2:
-    #     min_dist = 10000000
-    #     for point1 in p1:
-    #         min_dist = min(min_dist, l2(point1, point2))
-    #     error2 += min_dist
 
     d = pt2[:, None, :] - pt1[None, :, :]  # pairwise subtraction, NxMxD
     d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
@@ -59,6 +46,8 @@ def find_nearest_neighbor(p1, neighbors):
     p1, x_shift, y_shift = normalize_points(p1)
     n_x_shift, n_y_shift = 0, 0
     min_score = 10000000
+    chosen_p = p1  # initialize
+    angle = 0
     for i, p in enumerate(neighbors):
         normalize_p, temp_n_x_shift, temp_n_y_shift = normalize_points(p.copy())
         error = calc_error(p1, normalize_p)
@@ -66,9 +55,20 @@ def find_nearest_neighbor(p1, neighbors):
             min_score = error
             index = i
             n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
+            chosen_p = normalize_p
+    score = [min_score]
+    print("before rotate: ", min_score)
+    for temp_angle in range(-30, 31):
+        pt = Analyzer.rotate(chosen_p.copy(), temp_angle/6)
+        error = calc_error(p1, pt)
 
-    print("min score: ", min_score)
-    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 20
+        if error < min_score:
+            min_score = error
+            angle = temp_angle/4
+
+    score.append(min_score)
+    print("after rotate: ", min_score)
+    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 20, score, angle, n_x_shift, n_y_shift
 
 
 def normalize_points(points):
