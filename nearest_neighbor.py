@@ -36,18 +36,15 @@ def calc_error(p1, p2):
 
 def find_nearest_neighbor(p1, neighbors):
     """
-    @TODO: translation (not sure about rotation)
     find the closest array-points to the given array-points (p1)
     :param p1: array of 2D points
     :param neighbors: array of arrays of 2D points 2D
-    :return: the nearest neighbor (array of 2D points)
+    :return: the nearest neighbor (array of 2D points), x/y shift, and threshold
     """
     index = 0
     p1, x_shift, y_shift = normalize_points(p1)
     n_x_shift, n_y_shift = 0, 0
     min_score = 10000000
-    chosen_p = p1  # initialize
-    angle = 0
     for i, p in enumerate(neighbors):
         normalize_p, temp_n_x_shift, temp_n_y_shift = normalize_points(p.copy())
         error = calc_error(p1, normalize_p)
@@ -55,20 +52,8 @@ def find_nearest_neighbor(p1, neighbors):
             min_score = error
             index = i
             n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
-            chosen_p = normalize_p
-    score = [min_score]
-    print("before rotate: ", min_score)
-    for temp_angle in range(-30, 31):
-        pt = Analyzer.rotate(chosen_p.copy(), temp_angle/6)
-        error = calc_error(p1, pt)
 
-        if error < min_score:
-            min_score = error
-            angle = temp_angle/4
-
-    score.append(min_score)
-    print("after rotate: ", min_score)
-    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 20, score, angle, n_x_shift, n_y_shift
+    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score
 
 
 def normalize_points(points):

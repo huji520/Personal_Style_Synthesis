@@ -203,7 +203,7 @@ class Drawing:
 
         return img, img_ref
 
-    def plot_picture(self, show_reference=False, show_clusters=False):
+    def plot_picture(self, show_reference=False, show_clusters=False, title=""):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
@@ -242,6 +242,8 @@ class Drawing:
                          linewidth=3 * avg_pressure, color='black')
 
         plt.gca().invert_yaxis()
+        if title:
+            plt.title(title)
 
         # reference
         if show_reference:
@@ -346,11 +348,11 @@ class Drawing:
         :param ang_threshold: the maximal angle between strokes of which they'll belong to the same group
         :return: a list of drawing objects: each object is a part of this drawing with one group of strokes
         """
+        print("Start clustering with group_strokes function")
         new_draws = []
         data = [stroke for stroke in self._data if not stroke.is_pause()] # and 30 <= stroke.length()] # <= 250]
-        # print(data)
         counter = 0
-        while len(data) is not 0:
+        while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
             #          np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold
             #          or
@@ -384,7 +386,7 @@ class Drawing:
             new_draws.append(Drawing(group, self._ref_path, self._pic_path))
             counter = counter + 1
             # print(group)
-
+        print("End clustering with group_strokes function\n")
         return self, new_draws
 
     def plot_simplify_drawing(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):

@@ -3,7 +3,6 @@ import os
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from imageio import imread, imsave
 from skimage.color import rgb2gray
 from skimage.transform import resize
@@ -308,3 +307,26 @@ class Analyzer:
             points[i] = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]) @ point
 
         return points
+
+    @staticmethod
+    def shift_x(points, shift):
+        """
+        shift all the points in x coordinate
+        :param points: array of 2D points
+        :param shift: int
+        """
+        points = np.array(points)
+        points[:,0] += shift
+        return points
+
+    @staticmethod
+    def shift_y(points, shift):
+        """
+        shift all the points in y coordinate
+        :param points: array of 2D points
+        :param shift: int
+        """
+        points = np.array(points)
+        points[:, 1] += shift
+        return points
+

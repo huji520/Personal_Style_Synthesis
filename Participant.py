@@ -135,18 +135,26 @@ class Participant:
             print(process_counter, " out of ", len(self.get_picture_list()))
             process_counter += 1
 
-    def simplify_all_clusters(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+    def simplify_all_clusters(self, euc_dist_threshold, dist_threshold, ang_threshold):
+        """
+        Simplify all the clusters of the participant (which include all the draws)
+        :param euc_dist_threshold: argument for group_stroke
+        :param dist_threshold: argument for group_stroke
+        :param ang_threshold: argument for group_stroke
+        :return: Simplify clusters
+        """
+        print("Start clustering all participant draws")
         clusters = []
-
         for j, draw in enumerate(self.get_data()):
-            print("{0} out of {1}".format(j, len(self.get_data())))
+            print(f"{j} out of {len(self.get_data())}")
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
-
         self.clusters = clusters
-        simplify_clusters = []
+        print("End clustering all participant draws\n")
 
+        print("Start simplify all participant clusters")
+        simplify_clusters = []
         for i, draw in enumerate(clusters):
-            print("{0} out of {1}".format(i, len(clusters)))
+            print(f"{i} out of {len(clusters)}")
             x = []
             y = []
             for stroke in draw.get_data():
@@ -158,28 +166,49 @@ class Participant:
                 simplify_clusters.append(p)
             else:
                 simplify_clusters.append([[0,0], [5000,5000]])
+        print("End simplify all participant clusters\n")
 
         return simplify_clusters
 
-    def create_dict(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-        base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
+    def create_dict(self, euc_dist_threshold, dist_threshold, ang_threshold):
+        """
+        Creating a new dict for the participant.
+        :param euc_dist_threshold: argument for simplify_all_clusters
+        :param dist_threshold: argument for simplify_all_clusters
+        :param ang_threshold: argument for simplify_all_clusters
+        :return: Array of simplify and array of clusters, which are fit to each other (by indexes)
+        """
+        print(f"Start creating new dict for {self._name}\neuc_dist_threshold={euc_dist_threshold}\n"
+              f"dist_threshold={dist_threshold}\nang_threshold={ang_threshold}\n")
+
+        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}.p"
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
         simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
         person_clusters = self.clusters
         pickle.dump(simplify_clusters, open(simplify_path, "wb"))
         pickle.dump(person_clusters, open(person_clusters_path, "wb"))
-        return simplify_cluster, person_clusters
+        print("End creating new dict")
+        return simplify_clusters, person_clusters
 
-    def searching_match_on_person(self, p1, load=True, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-        base_path = "{0}_{1}_{2}_{3}.p".format(self._name, euc_dist_threshold, dist_threshold, ang_threshold)
+    def searching_match_on_person(self, p1, load_dict, euc_dist_threshold, dist_threshold, ang_threshold):
+        """
+        Find the best match for 2D array p1 in the participant dict
+        :param p1: 2D array
+        :param load_dict: Use pickle if True, else create a new one
+        :param euc_dist_threshold: argument for create a new dict if needed
+        :param dist_threshold: argument for create a new dict if needed
+        :param ang_threshold: argument for create a new dict if needed
+        :return: The cluster that found (with the participant style)
+        """
+        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}.p"
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
-        if load:
+        if load_dict:
             simplify_clusters = pickle.load(open(simplify_path, "rb"))
-            person_clusters = pickle.load((open(person_clusters_path, "rb")))
+            person_clusters = pickle.load(open(person_clusters_path, "rb"))
         else:
-            simplify_clusters, person_clusters = self.create_dict()
+            simplify_clusters, person_clusters = self.create_dict(euc_dist_threshold, dist_threshold, ang_threshold)
 
-        i, x_shift, y_shift, match, error, angle, x, y = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
-        return person_clusters[i], x_shift, y_shift, match, error, angle, x, y
+        i, x_shift, y_shift, error = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
+        return person_clusters[i], x_shift, y_shift, error
