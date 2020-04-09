@@ -134,7 +134,7 @@ class Stroke:
         self._data[Constants.X] = points[:, 0]
         self._data[Constants.Y] = points[:, 1]
 
-    def insert(self, idx, idx1=0, idx2=0):
+    def insert(self, idx):
         """
         Insert a new sample to the stroke
         :param idx: the index to insert sample
