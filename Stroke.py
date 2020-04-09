@@ -186,7 +186,8 @@ class Stroke:
         Using for print(Stroke) outside the class
         :return: The string that will be print
         """
-        s = f"time\tx\t\ty\t\tpressure\ttiltX\t\ttiltY\t\tazimuth\t\tsidePressure\trotation\n"
+        s = f"Stroke length is: {self.size()}\n"
+        s += f"time\tx\t\ty\t\tpressure\ttiltX\t\ttiltY\t\tazimuth\t\tsidePressure\trotation\n"
         for i in range(self.size() - 1):
             s += f"{format(self._data[Constants.TIME][i], '.3f')}\t" \
                  f"{self._data[Constants.X][i]}\t" \
