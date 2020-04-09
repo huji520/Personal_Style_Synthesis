@@ -108,14 +108,22 @@ class Stroke:
         return time
 
     def set_x(self, shift):
+        """
+        Shifting the x values of the stroke
+        :param shift: the value to shift the x values
+        """
         self._data[Constants.X] += shift
 
     def set_y(self, shift):
+        """
+        Shifting the y values of the stroke
+        :param shift: the value to shift the y values
+        """
         self._data[Constants.Y] += shift
 
     def rotate(self, angle):
         """
-        roatate the stroke in the given angle
+        rotate the stroke in the given angle
         :param angle: degrees (int)
         """
         angle = np.deg2rad(angle)
@@ -125,3 +133,68 @@ class Stroke:
 
         self._data[Constants.X] = points[:, 0]
         self._data[Constants.Y] = points[:, 1]
+
+    def insert(self, idx, idx1=0, idx2=0):
+        """
+        Insert a new sample to the stroke
+        :param idx: the index to insert sample
+        """
+        # Set this values to -1 since they are not in use
+        self._data[Constants.TILT_X] = np.insert(self._data[Constants.TILT_X], idx, -1)
+        self._data[Constants.TILT_Y] = np.insert(self._data[Constants.TILT_Y], idx, -1)
+        self._data[Constants.AZIMUTH] = np.insert(self._data[Constants.AZIMUTH], idx, -1)
+        self._data[Constants.SIDE_PRESSURE] = np.insert(self._data[Constants.SIDE_PRESSURE], idx, -1)
+        self._data[Constants.ROTATION] = np.insert(self._data[Constants.ROTATION], idx, -1)
+
+        # Set the value to be averaging of the two value which is insert between them
+        time = (self._data[Constants.TIME][idx - 1] + self._data[Constants.TIME][idx]) / 2
+        pressure = (self._data[Constants.PRESSURE][idx - 1] + self._data[Constants.PRESSURE][idx]) / 2
+        x = (self._data[Constants.X][idx - 1] + self._data[Constants.X][idx]) / 2
+        y = (self._data[Constants.Y][idx - 1] + self._data[Constants.Y][idx]) / 2
+        self._data[Constants.TIME] = np.insert(self._data[Constants.TIME], idx, time)
+        self._data[Constants.PRESSURE] = np.insert(self._data[Constants.PRESSURE], idx, pressure)
+        self._data[Constants.X] = np.insert(self._data[Constants.X], idx, x)
+        self._data[Constants.Y] = np.insert(self._data[Constants.Y], idx, y)
+
+    def remove(self, idx):
+        """
+        Remove the given index from the stroke
+        :param idx: The index the should be deleted
+        """
+        self._data[Constants.TIME] = np.delete(self._data[Constants.TIME], idx)
+        self._data[Constants.TILT_X] = np.delete(self._data[Constants.TILT_X], idx)
+        self._data[Constants.TILT_Y] = np.delete(self._data[Constants.TILT_Y], idx)
+        self._data[Constants.AZIMUTH] = np.delete(self._data[Constants.AZIMUTH], idx)
+        self._data[Constants.SIDE_PRESSURE] = np.delete(self._data[Constants.SIDE_PRESSURE], idx)
+        self._data[Constants.ROTATION] = np.delete(self._data[Constants.ROTATION], idx)
+        self._data[Constants.PRESSURE] = np.delete(self._data[Constants.PRESSURE], idx)
+        self._data[Constants.X] = np.delete(self._data[Constants.X], idx)
+        self._data[Constants.Y] = np.delete(self._data[Constants.Y], idx)
+
+    def remove_and_replace(self, idx):
+        """
+        Remove the samples with indexes idx and idx-1, and instead of them insert new sample (averaging of them)
+        Example: [1,2,3,4,5,6], idx=2 --> [1,2.5,4,5,6]
+        :param idx: idx and idx-1 will be removed, idx-1 will be insert instead
+        """
+        self.insert(idx)
+        self.remove(idx - 1)
+        self.remove(idx)
+
+    def __str__(self):
+        """
+        Using for print(Stroke) outside the class
+        :return: The string that will be print
+        """
+        s = f"time\tx\t\ty\t\tpressure\ttiltX\t\ttiltY\t\tazimuth\t\tsidePressure\trotation\n"
+        for i in range(self.size() - 1):
+            s += f"{format(self._data[Constants.TIME][i], '.3f')}\t" \
+                 f"{self._data[Constants.X][i]}\t" \
+                 f"{self._data[Constants.Y][i]}\t" \
+                 f"{format(self._data[Constants.PRESSURE][i], '.3f')}\t\t" \
+                 f"{format(self._data[Constants.TILT_X][i], '.3f')}\t\t" \
+                 f"{format(self._data[Constants.TILT_Y][i], '.3f')}\t\t" \
+                 f"{format(self._data[Constants.AZIMUTH][i], '.3f')}\t\t" \
+                 f"{format(self._data[Constants.SIDE_PRESSURE][i], '.3f')}\t\t\t" \
+                 f"{format(self._data[Constants.ROTATION][i], '.3f')}\n"
+        return s

@@ -121,3 +121,8 @@ if __name__ == "__main__":
     new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
     new_draw.plot_picture(show_clusters=False)
 
+    # print(draw.get_data()[0])
+    # print()
+    # draw.get_data()[0].remove_and_replace(3)
+    # print()
+    # print(draw.get_data()[0])
