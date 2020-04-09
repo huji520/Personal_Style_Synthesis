@@ -139,12 +139,12 @@ class Stroke:
         Insert a new sample to the stroke
         :param idx: the index to insert sample
         """
-        # Set this values to -1 since they are not in use
-        self._data[Constants.TILT_X] = np.insert(self._data[Constants.TILT_X], idx, -1)
-        self._data[Constants.TILT_Y] = np.insert(self._data[Constants.TILT_Y], idx, -1)
-        self._data[Constants.AZIMUTH] = np.insert(self._data[Constants.AZIMUTH], idx, -1)
-        self._data[Constants.SIDE_PRESSURE] = np.insert(self._data[Constants.SIDE_PRESSURE], idx, -1)
-        self._data[Constants.ROTATION] = np.insert(self._data[Constants.ROTATION], idx, -1)
+        # Set this values to 0 since they are not in use
+        self._data[Constants.TILT_X] = np.insert(self._data[Constants.TILT_X], idx, 0)
+        self._data[Constants.TILT_Y] = np.insert(self._data[Constants.TILT_Y], idx, 0)
+        self._data[Constants.AZIMUTH] = np.insert(self._data[Constants.AZIMUTH], idx, 0)
+        self._data[Constants.SIDE_PRESSURE] = np.insert(self._data[Constants.SIDE_PRESSURE], idx, 0)
+        self._data[Constants.ROTATION] = np.insert(self._data[Constants.ROTATION], idx, 0)
 
         # Set the value to be averaging of the two value which is insert between them
         time = (self._data[Constants.TIME][idx - 1] + self._data[Constants.TIME][idx]) / 2
