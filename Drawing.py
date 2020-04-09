@@ -1,11 +1,8 @@
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import imread, imshow, imsave
 from PIL import Image
 import scipy.signal as signal
-import scipy.spatial.distance as distance
-import Constants
 from Stroke import Stroke
 import simplify_cluster
 
@@ -436,3 +433,11 @@ class Drawing:
     def rotate(self, angle):
         for stroke in self._data:
             stroke.rotate(angle)
+
+    def __str__(self):
+        s = f"The total number of strokes (without pause strokes) is: {self.size()}\n\n"
+        for i, stroke in enumerate(self._data):
+            if not stroke.is_pause():
+                s += f"Current index: {i//2}\n"
+                s += f"{stroke.__str__()}\n"
+        return s

@@ -118,8 +118,10 @@ if __name__ == "__main__":
     input_fish = "example_input/testdata fish.txt"
 
     draw = Analyzer.create_drawing(input_banana, orig_data=False)
-    new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
-    new_draw.plot_picture(show_clusters=False)
+    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
+    # new_draw.plot_picture(show_clusters=False)
+    print(draw)
+
 
     # print(draw.get_data()[0])
     # print()
