@@ -62,17 +62,19 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     for i in range(len(clusters)):
         print("{0} out of {1}".format(i, len(clusters)))
         matched_cluster, x_shift, y_shift, match, error, angle, x, y = participant.searching_match_on_person(
-                                                            np.array(simplified_clusters[i]), ang_threshold=0.51)
+                                                            np.array(simplified_clusters[i]), ang_threshold=0.5)
 
         if match:
             clusters[i] = matched_cluster
-            clusters[i].shift_x(-x)
-            clusters[i].shift_y(-y)
-            clusters[i].rotate(angle)
-            clusters[i].shift_x(x_shift + x)
-            clusters[i].shift_y(y_shift + y)
-            match_error_avg_no_rotate += error[0]
-            match_error_avg_with_rotate += error[1]
+            clusters[i].shift_x(x_shift)
+            clusters[i].shift_y(y_shift)
+        #     clusters[i].shift_x(-x)
+        #     clusters[i].shift_y(-y)
+        #     clusters[i].rotate(angle)
+        #     clusters[i].shift_x(x_shift + x)
+        #     clusters[i].shift_y(y_shift + y)
+        #     match_error_avg_no_rotate += error[0]
+        #     match_error_avg_with_rotate += error[1]
 
         total_error_avg_no_rotate += error[0]
         total_error_avg_with_rotate += error[1]
@@ -125,7 +127,7 @@ if __name__ == "__main__":
     # for new_draw in new_draws:
     #     new_draw.plot_picture(show_clusters=True)
 
-    draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    draw = Analyzer.create_drawing(input_fish, orig_data=False)
     # draw.plot_picture()
     # participant = Participant("aliza")
     # participant.create_dict(ang_threshold=0.52)

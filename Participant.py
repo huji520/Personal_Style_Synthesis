@@ -167,6 +167,10 @@ class Participant:
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
         simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold)
         person_clusters = self.clusters
+        simplify_clusters.extend(self.simplify_all_clusters(50, 10, 0.5))
+        person_clusters.extend(self.clusters)
+        simplify_clusters.extend(self.simplify_all_clusters(25, 7, 0.5))
+        person_clusters.extend(self.clusters)
         pickle.dump(simplify_clusters, open(simplify_path, "wb"))
         pickle.dump(person_clusters, open(person_clusters_path, "wb"))
         return simplify_cluster, person_clusters

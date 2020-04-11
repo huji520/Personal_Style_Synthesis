@@ -57,18 +57,18 @@ def find_nearest_neighbor(p1, neighbors):
             n_x_shift, n_y_shift = temp_n_x_shift, temp_n_y_shift
             chosen_p = normalize_p
     score = [min_score]
-    print("before rotate: ", min_score)
-    for temp_angle in range(-30, 31):
-        pt = Analyzer.rotate(chosen_p.copy(), temp_angle/6)
-        error = calc_error(p1, pt)
-
-        if error < min_score:
-            min_score = error
-            angle = temp_angle/4
+    # print("before rotate: ", min_score)
+    # for temp_angle in range(-30, 31):
+    #     pt = Analyzer.rotate(chosen_p.copy(), temp_angle/6)
+    #     error = calc_error(p1, pt)
+    #
+    #     if error < min_score:
+    #         min_score = error
+    #         angle = temp_angle/4
 
     score.append(min_score)
-    print("after rotate: ", min_score)
-    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 20, score, angle, n_x_shift, n_y_shift
+    # print("after rotate: ", min_score)
+    return index, x_shift - n_x_shift, y_shift - n_y_shift, min_score < 5, score, angle, n_x_shift, n_y_shift
 
 
 def normalize_points(points):
