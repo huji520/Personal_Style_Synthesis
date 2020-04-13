@@ -116,15 +116,32 @@ def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0
 if __name__ == "__main__":
     input_banana = "example_input/testdata banana.txt"
     input_fish = "example_input/testdata fish.txt"
+    input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    draw = Analyzer.create_drawing(input1, orig_data=False, stroke_size=200)
+    draw.plot_picture(title="output drawing (length=200)")
+
+    draw = Analyzer.create_drawing(input1, orig_data=False)
+    draw.plot_picture(title="input drawing")
+
     # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
     # new_draw.plot_picture(show_clusters=False)
-    print(draw)
-
+    # print(draw)
 
     # print(draw.get_data()[0])
     # print()
     # draw.get_data()[0].remove_and_replace(3)
     # print()
     # print(draw.get_data()[0])
+
+    # plt.subplot(121)
+    # plt.title(f"length = {draw.get_data()[0].size()}")
+    # plt.plot(draw.get_data()[0].get_feature('x'), draw.get_data()[0].get_feature('y'), color='red')
+    #
+    # draw.get_data()[0].set_size(200)
+    # print(draw.get_data()[0].size())
+    # plt.subplot(122)
+    # plt.title(f"length = 200")
+    # plt.plot(draw.get_data()[0].get_feature('x'), draw.get_data()[0].get_feature('y'), color='blue')
+
+    # plt.show()

@@ -181,6 +181,21 @@ class Stroke:
         self.remove(idx - 1)
         self.remove(idx)
 
+    def set_size(self, new_size):
+        i = 1
+
+        while self.size() < new_size:
+            self.insert(i)
+            i += 2
+            if i > self.size() - 2:
+                i = 1
+
+        while self.size() > new_size:
+            self.remove_and_replace(i)
+            i += 1
+            if i > self.size() - 2:
+                i = 1
+
     def __str__(self):
         """
         Using for print(Stroke) outside the class

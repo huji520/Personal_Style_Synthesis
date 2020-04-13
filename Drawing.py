@@ -1,26 +1,25 @@
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
-from PIL import Image
 import scipy.signal as signal
 from Stroke import Stroke
 import simplify_cluster
 
 
 class Drawing:
-    def __init__(self, data, pic_path, ref_path):
+    def __init__(self, data, pic_path, stroke_size=None):
         """
         :param data: list of Strokes objects
         """
         self._data = data
-        self._ref_path = ref_path
         self._pic_path = pic_path
+        self.set_strokes_size(stroke_size)
 
-    def get_ref_path(self):
-        """
-        :return: path to reference picture
-        """
-        return self._ref_path
+    def set_strokes_size(self, stroke_size):
+        if stroke_size:
+            for stroke in self._data:
+                if not stroke.is_pause():
+                    stroke.set_size(stroke_size)
 
     def get_pic_path(self):
         """
@@ -172,35 +171,7 @@ class Drawing:
 
         return [start_x, start_y, end_x, end_y]
 
-    def plot_crop_image(self, return_without_plot = False):
-        """
-
-        :param return_without_plot: true for only return IMG ref without plot
-        :return: IMG ref
-        """
-        img = Image.open(self.get_pic_path())
-        locations = self.get_active_image_sizes()  # 0 -> start_x, 1 -> start_y, 2 -> end_x, 3 -> end_y
-        img = img.crop((locations[0], locations[1], locations[2], locations[3]))
-        img.thumbnail([locations[2] - locations[0], locations[3] - locations[1]], Image.ANTIALIAS)
-        if not return_without_plot:
-            plt.figure()
-            plt.imshow(img)
-
-        img_ref = Image.open(self._ref_path)
-        ref_width = float(img_ref.size[0])
-        ref_height = float(img_ref.size[1])
-        new_width = img.size[0]  # the required width
-        ratio = new_width / ref_width
-        new_height = int(ref_height * float(ratio))
-        img_ref = img_ref.resize((new_width, new_height), Image.ANTIALIAS)
-        if not return_without_plot:
-            plt.figure()
-            plt.imshow(img_ref)
-            plt.show()
-
-        return img, img_ref
-
-    def plot_picture(self, show_reference=False, show_clusters=False, title=""):
+    def plot_picture(self, show_reference=False, show_clusters=False, title="", num=1, plt_show=True):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
@@ -210,7 +181,7 @@ class Drawing:
         f = 3
 
         # drawing
-        plt.figure(figsize=(f * 2.5, f * h))
+        plt.figure(num=num, figsize=(f * 2.5, f * h))
         for stroke in self._data:
             avg_pressure = stroke.average('pressure') if stroke.average('pressure') > 0 else 0.3
             if show_clusters:
@@ -242,19 +213,8 @@ class Drawing:
         if title:
             plt.title(title)
 
-        # reference
-        if show_reference:
-            plt.figure(figsize=(w, h))
-            image = Image.open(self._ref_path)
-            ref_width = float(image.size[0])
-            ref_height = float(image.size[1])
-            new_width = 800  # the required width
-            ratio = new_width / ref_width
-            new_height = int(ref_height * float(ratio))
-            image = image.resize((new_width, new_height), Image.ANTIALIAS)
-            plt.imshow(image)
-
-        plt.show()
+        if plt_show:
+            plt.show()
 
     def strokes_correlation(self, stroke_1, stroke_2):
         return signal.correlate2d(stroke_1, stroke_2)
@@ -380,7 +340,7 @@ class Drawing:
             for stroke in group:
                 stroke._color = counter % 5
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
-            new_draws.append(Drawing(group, self._ref_path, self._pic_path))
+            new_draws.append(Drawing(group, self._pic_path))
             counter = counter + 1
             # print(group)
         print("End clustering with group_strokes function\n")

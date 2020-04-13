@@ -116,7 +116,7 @@ class Analyzer:
                     return "data/" + ref_folder + "/" + participant_name + "/" + file
 
     @staticmethod
-    def create_drawing(path, orig_data=True):
+    def create_drawing(path, orig_data=True, stroke_size=None):
         """
         :param path: path to the data file (.txt)
         :return: Drawing object.
@@ -124,13 +124,11 @@ class Analyzer:
         data = Analyzer.get_data_file(path)
         if orig_data:
             pic_path = Analyzer.get_pic_path(path)
-            ref_path = Analyzer.get_ref_path(data)
         else:
             pic_path = None
-            ref_path = None
-            return Drawing(Analyzer.get_strokes(data), pic_path, ref_path)
-        if pic_path is not None and ref_path is not None:
-            return Drawing(Analyzer.get_strokes(data), pic_path, ref_path)
+            return Drawing(Analyzer.get_strokes(data), pic_path, stroke_size)
+        if pic_path is not None:
+            return Drawing(Analyzer.get_strokes(data), pic_path, stroke_size)
         else:
             print("Error: missing data")
 
