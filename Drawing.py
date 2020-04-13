@@ -298,7 +298,8 @@ class Drawing:
         # print(np.arctan(abs((x2_1 - x2_2) / (y2_1 - y2_2))))
         return np.abs(abs(ang_1) - abs(ang_2))
 
-    def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold):
+    def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold, max_num_of_strokes=0,
+        limit_strokes_num=False,):
         """
         divide all strokes in the drawing to groups according to distance and angle properties
         :param euc_dist_threshold: the maximal distance between strokes of which they'll belong to the same group
@@ -307,7 +308,7 @@ class Drawing:
         """
         print("Start clustering with group_strokes function")
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause()] # and 30 <= stroke.length()] # <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause()]# and 30 <= stroke.length()] # <= 250]
         counter = 0
         while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
@@ -337,6 +338,9 @@ class Drawing:
                     stroke._group = counter + 1
                     group.append(stroke)
                     i = i + 1
+                if limit_strokes_num:
+                    if len(group) == max_num_of_strokes:
+                        break
             for stroke in group:
                 stroke._color = counter % 5
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
