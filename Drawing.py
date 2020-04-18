@@ -17,9 +17,16 @@ class Drawing:
 
     def set_strokes_size(self, stroke_size):
         if stroke_size:
-            for stroke in self._data:
-                if not stroke.is_pause():
-                    stroke.set_size(stroke_size)
+            if stroke_size >= 1:
+                for stroke in self._data:
+                    if not stroke.is_pause():
+                        stroke.set_size(stroke_size)
+            else:
+                for stroke in self._data:
+                    if not stroke.is_pause():
+                        stroke.set_size(int(stroke_size * stroke.size()))
+
+
 
     def get_pic_path(self):
         """

@@ -60,7 +60,7 @@ def get_participant(person_name, load_person):
 
 
 def transfer_style(draw, person_name, load_person=False, load_dict=True, already_simplified=False,
-                   euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5, matching_threshold=5):
+                   euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5, matching_threshold=5, new_method=False):
     """
     Get a drawing and person name, and generate a new draw with the style of the given person name.
     :param matching_threshold: If the error of the best match if bigger than that threshold, do not change the cluster
@@ -82,7 +82,8 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     for i in range(len(clusters)):
         print(f"{i} out of {len(clusters)}")
         matched_cluster, x_shift, y_shift, error = participant.searching_match_on_person(
-            np.array(simplified_clusters[i]), load_dict, euc_dist_threshold, dist_threshold, ang_threshold)
+            np.array(simplified_clusters[i]), load_dict, euc_dist_threshold, dist_threshold, ang_threshold, new_method)
+        load_dict = True
 
         if error < matching_threshold:
             clusters[i] = matched_cluster
@@ -94,7 +95,7 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     for cluster in clusters:
         strokes.extend(cluster.get_data())
 
-    return Drawing(strokes, clusters[0].get_ref_path(), clusters[0].get_pic_path())
+    return Drawing(strokes, clusters[0].get_pic_path())
 
 
 def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
@@ -109,7 +110,7 @@ def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0
     strokes = []
     for cluster in clusters:
         strokes.extend(cluster.get_data())
-    rebuilt_draw = Drawing(strokes, clusters[0].get_ref_path(), clusters[0].get_pic_path())
+    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
     rebuilt_draw.plot_picture(show_clusters=True)
 
 
@@ -121,10 +122,10 @@ if __name__ == "__main__":
     draw = Analyzer.create_drawing(input1, orig_data=False, stroke_size=200)
     draw.plot_picture(title="output drawing (length=200)")
 
-    draw = Analyzer.create_drawing(input1, orig_data=False)
+    draw = Analyzer.create_drawing(input_banana, orig_data=False)
     draw.plot_picture(title="input drawing")
 
-    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=True)
+    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=False, already_simplified=True, new_method=True)
     # new_draw.plot_picture(show_clusters=False)
     # print(draw)
 
