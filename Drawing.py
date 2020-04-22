@@ -190,7 +190,7 @@ class Drawing:
         # drawing
         plt.figure(num=num, figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            avg_pressure = stroke.average('pressure') if stroke.average('pressure') > 0 else 0.3
+            avg_pressure = stroke.average('pressure') if  0 < stroke.average('pressure') < 0.15 else 0.15
             if show_clusters:
                 if stroke._color == 0:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
@@ -214,7 +214,7 @@ class Drawing:
                              color='purple')
             else:
                 plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
-                         linewidth=3 * avg_pressure, color='black')
+                         linewidth= 0.5 * (avg_pressure / (0.15 + avg_pressure)), color='black')
 
         plt.gca().invert_yaxis()
         if title:
@@ -315,7 +315,7 @@ class Drawing:
         """
         print("Start clustering with group_strokes function")
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause()]# and 30 <= stroke.length()] # <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()] # <= 250]
         counter = 0
         while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
