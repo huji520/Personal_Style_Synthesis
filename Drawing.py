@@ -190,7 +190,7 @@ class Drawing:
         # drawing
         plt.figure(num=num, figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            avg_pressure = stroke.average('pressure') if stroke.average('pressure') > 0 else 0.3
+            avg_pressure = stroke.average('pressure') if  0 < stroke.average('pressure') < 0.15 else 0.15
             if show_clusters:
                 if stroke._color == 0:
                     plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
@@ -214,7 +214,7 @@ class Drawing:
                              color='purple')
             else:
                 plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
-                         linewidth=3 * avg_pressure, color='black')
+                         linewidth= 0.5 * (avg_pressure / (0.15 + avg_pressure)), color='black')
 
         plt.gca().invert_yaxis()
         if title:
@@ -306,7 +306,7 @@ class Drawing:
         return np.abs(abs(ang_1) - abs(ang_2))
 
     def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold, max_num_of_strokes=0,
-        limit_strokes_num=False,):
+        limit_strokes_num=False, fixed_size_of_strokes=False):
         """
         divide all strokes in the drawing to groups according to distance and angle properties
         :param euc_dist_threshold: the maximal distance between strokes of which they'll belong to the same group
@@ -315,7 +315,7 @@ class Drawing:
         """
         print("Start clustering with group_strokes function")
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause()]# and 30 <= stroke.length()] # <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()] # <= 250]
         counter = 0
         while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
@@ -351,6 +351,12 @@ class Drawing:
             for stroke in group:
                 stroke._color = counter % 5
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
+            if (fixed_size_of_strokes):
+                if len(group) < max_num_of_strokes:
+                    for i in range(max_num_of_strokes - len(group)):
+                        group.append(Stroke(group[0].get_data()))
+                        group[-1]._color = counter % 5
+            print(len(group))
             new_draws.append(Drawing(group, self._pic_path))
             counter = counter + 1
             # print(group)
