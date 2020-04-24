@@ -155,7 +155,9 @@ class Participant:
         clusters = []
         for j, draw in enumerate(self.get_data()):
             print(f"{j} out of {len(self.get_data())}")
-            clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1])
+            clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold,
+                                               max_num_of_strokes=5,
+                                               limit_strokes_num=True, fixed_size_of_strokes=True)[1])
         self.clusters = clusters
         print("End clustering all participant draws\n")
 
@@ -212,7 +214,7 @@ class Participant:
         pickle.dump(person_clusters_after_threshold, open(person_clusters_path, "wb"))
 
         print("End creating new dict")
-        return simplify_clusters, person_clusters
+        return simplify_clusters_after_threshold, person_clusters_after_threshold
 
     def searching_match_on_person(self, p1, load_dict, euc_dist_threshold, dist_threshold, ang_threshold,
                                   min_length=3, max_length=1000, simplify_size=None):

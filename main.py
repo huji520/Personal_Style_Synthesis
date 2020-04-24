@@ -5,7 +5,6 @@ from Participant import Participant
 import numpy as np
 import pickle
 import os
-import nearest_neighbor
 
 
 def get_simplified_draw(clusters, already_simplified=False):
@@ -109,54 +108,77 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     return Drawing(strokes, clusters[0].get_pic_path())
 
 
-def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-    """
-    Plot the input draw after clustering
-    :param ang_threshold: argument for group_strokes
-    :param dist_threshold: argument for group_strokes
-    :param euc_dist_threshold: argument for group_strokes
-    :param draw: Drawing object
-    """
-    clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-    strokes = []
-    for cluster in clusters:
-        strokes.extend(cluster.get_data())
-    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
-    rebuilt_draw.plot_picture(show_clusters=True)
+# def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+#     """
+#     Plot the input draw after clustering
+#     :param ang_threshold: argument for group_strokes
+#     :param dist_threshold: argument for group_strokes
+#     :param euc_dist_threshold: argument for group_strokes
+#     :param draw: Drawing object
+#     """
+#     clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
+#     strokes = []
+#     for cluster in clusters:
+#         strokes.extend(cluster.get_data())
+#     rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
+#     rebuilt_draw.plot_picture(show_clusters=True)
 
 
 if __name__ == "__main__":
+
     input_banana = "example_input/testdata banana.txt"
     input_fish = "example_input/testdata fish.txt"
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    draw = Analyzer.create_drawing(input_banana, orig_data=False)
-    new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, simplify_size=10)
-    new_draw.plot_picture(show_clusters=False)
+    # draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
+    # new_draw.plot_picture(show_clusters=False)
 
-    # base_path = f"aliza_10_5_0.5_stroke_length_.p"
+    # base_path = f"aliza_10_5_0.5_stroke_length_20.p"
     # simplify_path = os.path.join("pickle", "simplify", base_path)
     # person_clusters_path = os.path.join("pickle", "clusters", base_path)
-    #
     # simplify_clusters = pickle.load(open(simplify_path, "rb"))
     # person_clusters = pickle.load(open(person_clusters_path, "rb"))
-    # errors = []
+    #
+    # simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters), 20, 2))
+    # for i, stroke in enumerate(simplify_clusters):
+    #     for j, point in enumerate(stroke):
+    #         simplify_clusters_shape[i][j] = point
+    #
+    # person_clusters_shape = np.zeros(shape=(len(person_clusters), 5, 20, 2))
+    # for i, cluster in enumerate(person_clusters):
+    #     for j, stroke in enumerate(cluster.get_data()):
+    #         pairs = np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1)
+    #         for k, point in enumerate(pairs):
+    #             person_clusters_shape[i][j][k] = point
+    #
+    # pickle.dump(simplify_clusters_shape, open('x/x.p', "wb"))
+    # pickle.dump(person_clusters_shape, open('y/y.p', "wb"))
+
+
+
     # import matplotlib.pyplot as plt
-    # for i in range(len(simplify_clusters)):
-    #     cluster = person_clusters[i].get_data()
-    #     x = []
-    #     y = []
-    #     for stroke in cluster:
-    #         x.extend(stroke.get_feature('x'))
-    #         y.extend(stroke.get_feature('y'))
+    # plt.subplot(121)
+    # plt.title("simplify")
+    # plt.plot(simplify_clusters_shape[48][:,0], simplify_clusters_shape[8][:,1])
     #
-    #     points = np.stack((x,y), axis=1)
-    #     errors.append(nearest_neighbor.calc_error(points, simplify_clusters[i]))
-    #
-    # errors.sort()
-    # print(len(errors))
+    # plt.subplot(122)
+    # plt.title("cluster")
+    # for l in range(5):
+    #     plt.plot(person_clusters_shape[48][l][:, 0], person_clusters_shape[8][l][:, 1])
+    # plt.show()
 
 
+
+    # for simplify in simplify_clusters:
+    #     print((simplify))
+    # person_clusters = np.array(person_clusters)
+
+    # print(simplify_clusters.shape)
+    # print(person_clusters.shape)
+
+
+    # import matplotlib.pyplot as plt
     # for i in range(200):
     #     plt.figure(i)
     #     plt.subplot(121)

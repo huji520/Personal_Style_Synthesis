@@ -328,8 +328,7 @@ class Drawing:
             #          np.array(stroke.get_data()[1:3]).T, self.strokes_distance(np.array(data[0].get_data()[1:3]).T,
             #          np.array(stroke.get_data()[1:3]).T, dist_threshold)) <= ang_threshold)]
             # group.append(data[0])
-            group = []
-            group.append(data[0])
+            group = [data[0]]
             i = 0
             data[0]._group = counter + 1
             for stroke in data[1:]:
@@ -353,10 +352,10 @@ class Drawing:
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
             if (fixed_size_of_strokes):
                 if len(group) < max_num_of_strokes:
-                    for i in range(max_num_of_strokes - len(group)):
-                        group.append(Stroke(group[0].get_data()))
+                    for j in range(max_num_of_strokes - len(group)):
+                        group.append(Stroke(copy.deepcopy(group[0].get_data())))
                         group[-1]._color = counter % 5
-            print(len(group))
+
             new_draws.append(Drawing(group, self._pic_path))
             counter = counter + 1
             # print(group)

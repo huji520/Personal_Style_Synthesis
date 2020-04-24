@@ -368,17 +368,3 @@ class Analyzer:
             i += 1
             if i > len(points) - 2:
                 i = 1
-
-    @staticmethod
-    def set_order(points):
-        # find 2 nearest neighbors
-        points = np.asarray(points)
-        clf = NearestNeighbors(2).fit(points)
-        G = clf.kneighbors_graph()
-        T = nx.from_scipy_sparse_matrix(G)
-
-        # indexes of the new order
-        order = list(nx.dfs_preorder_nodes(T, 0))
-
-        # sorted arrays
-        return points[order]
