@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 
 
 class Participant:
-    def __init__(self, name):
+    def __init__(self, name, stroke_length=None):
         self._name = name
-        self._data = self.get_all_files_of_participant()
+        self._data = self.get_all_files_of_participant(stroke_length)
         self.clusters = []
+        self.stroke_length = stroke_length
 
     def get_data(self):
         return self._data[0]
@@ -23,7 +24,7 @@ class Participant:
     def get_name(self):
         return self._name
 
-    def get_all_files_of_participant(self):
+    def get_all_files_of_participant(self, stroke_length):
         """
         :return: list of Drawing of the participant
         """
@@ -42,7 +43,11 @@ class Participant:
                                     if file.endswith(".png"):
                                         pic_list.append("data/" + picture + "/" + person + "/" + file)
                             if path is not None:
-                                drawing = Analyzer.create_drawing(path)
+                                if stroke_length:
+                                    drawing = Analyzer.create_drawing(path, stroke_size=stroke_length)
+                                else:
+                                    drawing = Analyzer.create_drawing(path)
+
                                 if drawing is not None:
                                     lst.append(drawing)
                                 else:
@@ -135,9 +140,12 @@ class Participant:
             print(process_counter, " out of ", len(self.get_picture_list()))
             process_counter += 1
 
-    def simplify_all_clusters(self, euc_dist_threshold, dist_threshold, ang_threshold, new_method=False):
+    def simplify_all_clusters(self, euc_dist_threshold, dist_threshold, ang_threshold, min_length, max_length, simplify_size):
         """
         Simplify all the clusters of the participant (which include all the draws)
+        :param simplify_size:
+        :param max_length: max length for stroke
+        :param min_length: min length for stroke
         :param euc_dist_threshold: argument for group_stroke
         :param dist_threshold: argument for group_stroke
         :param ang_threshold: argument for group_stroke
@@ -153,32 +161,37 @@ class Participant:
 
         print("Start simplify all participant clusters")
         simplify_clusters = []
+        indexes = []
         for i, draw in enumerate(clusters):
             print(f"{i} out of {len(clusters)}")
             x = []
             y = []
             for stroke in draw.get_data():
-                if new_method:
-                    stroke.set_size(int(0.5 * stroke.size()))
                 x.extend(stroke.get_feature('x'))
                 y.extend(stroke.get_feature('y'))
 
-            if not new_method:
-                p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
-                if len(p) > 3:  # handle with very short simplify
-                    simplify_clusters.append(p)
-                else:
-                    simplify_clusters.append([[0, 0], [5000, 5000]])
+            p = simplify_cluster.simplify_cluster(x, y, dist=10)
+            if min_length < len(p) < max_length:
+                if simplify_size:
+                    Analyzer.set_size(p, simplify_size)
+                error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
+                if error < 3:
+                    indexes.append(i)
+                simplify_clusters.append(p)
+
             else:
-                simplify_clusters.append(np.stack((x, y), axis=1))
+                simplify_clusters.append([[0, 0], [5000, 5000]])
 
         print("End simplify all participant clusters\n")
 
-        return simplify_clusters
+        return simplify_clusters, indexes
 
-    def create_dict(self, euc_dist_threshold, dist_threshold, ang_threshold, new_method):
+    def create_dict(self, euc_dist_threshold, dist_threshold, ang_threshold, min_length=3, max_length=1000, simplify_size=None):
         """
         Creating a new dict for the participant.
+        :param simplify_size:
+        :param min_length: max length for stroke
+        :param max_length: min length for stroke
         :param euc_dist_threshold: argument for simplify_all_clusters
         :param dist_threshold: argument for simplify_all_clusters
         :param ang_threshold: argument for simplify_all_clusters
@@ -187,19 +200,27 @@ class Participant:
         print(f"Start creating new dict for {self._name}\neuc_dist_threshold={euc_dist_threshold}\n"
               f"dist_threshold={dist_threshold}\nang_threshold={ang_threshold}\n")
 
-        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}.p"
+        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}_stroke_length_{self.stroke_length if self.stroke_length else ''}.p"
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
-        simplify_clusters = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold, new_method)
+        simplify_clusters, indexes = self.simplify_all_clusters(euc_dist_threshold, dist_threshold, ang_threshold,
+                                                                min_length, max_length, simplify_size)
         person_clusters = self.clusters
-        pickle.dump(simplify_clusters, open(simplify_path, "wb"))
-        pickle.dump(person_clusters, open(person_clusters_path, "wb"))
+        simplify_clusters_after_threshold = np.take(simplify_clusters, indexes)
+        person_clusters_after_threshold = np.take(person_clusters, indexes)
+        pickle.dump(simplify_clusters_after_threshold, open(simplify_path, "wb"))
+        pickle.dump(person_clusters_after_threshold, open(person_clusters_path, "wb"))
+
         print("End creating new dict")
         return simplify_clusters, person_clusters
 
-    def searching_match_on_person(self, p1, load_dict, euc_dist_threshold, dist_threshold, ang_threshold, new_method):
+    def searching_match_on_person(self, p1, load_dict, euc_dist_threshold, dist_threshold, ang_threshold,
+                                  min_length=3, max_length=1000, simplify_size=None):
         """
         Find the best match for 2D array p1 in the participant dict
+        :param simplify_size:
+        :param max_length: max length for stroke
+        :param min_length: min length for stroke
         :param p1: 2D array
         :param load_dict: Use pickle if True, else create a new one
         :param euc_dist_threshold: argument for create a new dict if needed
@@ -207,14 +228,16 @@ class Participant:
         :param ang_threshold: argument for create a new dict if needed
         :return: The cluster that found (with the participant style)
         """
-        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}.p"
+        base_path = f"{self._name}_{euc_dist_threshold}_{dist_threshold}_{ang_threshold}_stroke_length_{self.stroke_length if self.stroke_length else ''}.p"
         simplify_path = os.path.join("pickle", "simplify", base_path)
         person_clusters_path = os.path.join("pickle", "clusters", base_path)
+
         if load_dict:
             simplify_clusters = pickle.load(open(simplify_path, "rb"))
             person_clusters = pickle.load(open(person_clusters_path, "rb"))
         else:
-            simplify_clusters, person_clusters = self.create_dict(euc_dist_threshold, dist_threshold, ang_threshold, new_method)
+            simplify_clusters, person_clusters = self.create_dict(euc_dist_threshold, dist_threshold, ang_threshold,
+                                                                  min_length, max_length, simplify_size)
 
         i, x_shift, y_shift, error = nearest_neighbor.find_nearest_neighbor(p1, simplify_clusters)
         return person_clusters[i], x_shift, y_shift, error

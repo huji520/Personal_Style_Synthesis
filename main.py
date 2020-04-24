@@ -5,6 +5,7 @@ from Participant import Participant
 import numpy as np
 import pickle
 import os
+import nearest_neighbor
 
 
 def get_simplified_draw(clusters, already_simplified=False):
@@ -29,7 +30,7 @@ def get_simplified_draw(clusters, already_simplified=False):
             p = np.stack((x,y), axis=1)
         # Case which the input should be simplify, like the participants inputs
         else:
-            p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
+            p = simplify_cluster.simplify_cluster(x, y, dist=10)
 
         # This is a bug in simplify cluster, p should never be zero
         if len(p) == 0:
@@ -40,19 +41,23 @@ def get_simplified_draw(clusters, already_simplified=False):
     return simplified_clusters
 
 
-def get_participant(person_name, load_person):
+def get_participant(person_name, load_person, stroke_length=None):
     """
     Get participant object.
+    :param stroke_length:
     :param person_name: The name of the participant
     :param load_person: Use pickle if True, else create a new one
     :return: Participant object
     """
-    pickle_person_path = os.path.join("pickle", "participant", f"{person_name}.p")
+    pickle_person_path = os.path.join("pickle", "participant", f"{person_name}_{stroke_length if stroke_length else ''}.p")
     if load_person:
         participant = pickle.load(open(pickle_person_path, "rb"))
     else:
         print("Start creating a new Participant")
-        participant = Participant(person_name)
+        if stroke_length:
+            participant = Participant(person_name, stroke_length=stroke_length)
+        else:
+            participant = Participant(person_name)
         pickle.dump(participant, open(pickle_person_path, "wb"))
         print("End creating a new Participant\n")
 
@@ -60,9 +65,14 @@ def get_participant(person_name, load_person):
 
 
 def transfer_style(draw, person_name, load_person=False, load_dict=True, already_simplified=False,
-                   euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5, matching_threshold=5, new_method=False):
+                   euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5, matching_threshold=5,
+                   min_length=3, max_length=1000, stroke_length=None, simplify_size=None):
     """
     Get a drawing and person name, and generate a new draw with the style of the given person name.
+    :param simplify_size:
+    :param stroke_length:
+    :param max_length:
+    :param min_length:
     :param matching_threshold: If the error of the best match if bigger than that threshold, do not change the cluster
     :param ang_threshold: argument for group_strokes
     :param dist_threshold: argument for group_strokes
@@ -74,7 +84,7 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     :param person_name: the name of the person with the wanted style
     :return: a draw object with the wanted style
     """
-    participant = get_participant(person_name, load_person)
+    participant = get_participant(person_name, load_person, stroke_length)
     clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
     simplified_clusters = get_simplified_draw(clusters, already_simplified=already_simplified)
 
@@ -82,7 +92,8 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     for i in range(len(clusters)):
         print(f"{i} out of {len(clusters)}")
         matched_cluster, x_shift, y_shift, error = participant.searching_match_on_person(
-            np.array(simplified_clusters[i]), load_dict, euc_dist_threshold, dist_threshold, ang_threshold, new_method)
+            np.array(simplified_clusters[i]), load_dict, euc_dist_threshold, dist_threshold, ang_threshold,
+            min_length, max_length, simplify_size)
         load_dict = True
 
         if error < matching_threshold:
@@ -119,30 +130,49 @@ if __name__ == "__main__":
     input_fish = "example_input/testdata fish.txt"
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    draw = Analyzer.create_drawing(input1, orig_data=False, stroke_size=200)
-    draw.plot_picture(title="output drawing (length=200)")
-
     draw = Analyzer.create_drawing(input_banana, orig_data=False)
-    draw.plot_picture(title="input drawing")
+    new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, simplify_size=10)
+    new_draw.plot_picture(show_clusters=False)
 
-    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=False, already_simplified=True, new_method=True)
-    # new_draw.plot_picture(show_clusters=False)
-    # print(draw)
-
-    # print(draw.get_data()[0])
-    # print()
-    # draw.get_data()[0].remove_and_replace(3)
-    # print()
-    # print(draw.get_data()[0])
-
-    # plt.subplot(121)
-    # plt.title(f"length = {draw.get_data()[0].size()}")
-    # plt.plot(draw.get_data()[0].get_feature('x'), draw.get_data()[0].get_feature('y'), color='red')
+    # base_path = f"aliza_10_5_0.5_stroke_length_.p"
+    # simplify_path = os.path.join("pickle", "simplify", base_path)
+    # person_clusters_path = os.path.join("pickle", "clusters", base_path)
     #
-    # draw.get_data()[0].set_size(200)
-    # print(draw.get_data()[0].size())
-    # plt.subplot(122)
-    # plt.title(f"length = 200")
-    # plt.plot(draw.get_data()[0].get_feature('x'), draw.get_data()[0].get_feature('y'), color='blue')
+    # simplify_clusters = pickle.load(open(simplify_path, "rb"))
+    # person_clusters = pickle.load(open(person_clusters_path, "rb"))
+    # errors = []
+    # import matplotlib.pyplot as plt
+    # for i in range(len(simplify_clusters)):
+    #     cluster = person_clusters[i].get_data()
+    #     x = []
+    #     y = []
+    #     for stroke in cluster:
+    #         x.extend(stroke.get_feature('x'))
+    #         y.extend(stroke.get_feature('y'))
+    #
+    #     points = np.stack((x,y), axis=1)
+    #     errors.append(nearest_neighbor.calc_error(points, simplify_clusters[i]))
+    #
+    # errors.sort()
+    # print(len(errors))
 
-    # plt.show()
+
+    # for i in range(200):
+    #     plt.figure(i)
+    #     plt.subplot(121)
+    #     plt.title("simplify")
+    #     plt.plot(np.array(simplify_clusters[i])[:,0], np.array(simplify_clusters[i])[:,1])
+    #
+    #     plt.subplot(122)
+    #     plt.title("style")
+    #     for stroke in person_clusters[i].get_data():
+    #         plt.plot(stroke.get_feature('x'), stroke.get_feature('y'))
+    #
+    #     plt.savefig(f'pairs/{i}.jpg')
+
+
+
+
+
+
+

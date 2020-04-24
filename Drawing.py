@@ -357,42 +357,6 @@ class Drawing:
         print("End clustering with group_strokes function\n")
         return self, new_draws
 
-    def plot_simplify_drawing(self, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-        """
-        plot the original drawing alongside and clustering drawing, alongside the simplify drawing
-        :param euc_dist_threshold: parameters for group_strokes function
-        :param dist_threshold: parameters for group_strokes function
-        :param ang_threshold: parameters for group_strokes function
-        """
-        clusters = self.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-        for i, draw in enumerate(clusters):
-            print("{0} out of {1}".format(i, len(clusters)))
-            x = []
-            y = []
-            for stroke in draw.get_data():
-                x.extend(stroke.get_feature('x'))
-                y.extend(stroke.get_feature('y'))
-
-            p = simplify_cluster.simplify_cluster(x, y, i, dist=10, save_pairs=False)
-            if len(p) > 3:  # handle with very short simplify
-                p = np.array(p)
-                plt.subplot(131)
-                plt.title("simplify")
-                plt.plot(p[:, 0], -p[:, 1] + 1200, c='b', linewidth=0.6)
-                plt.subplot(132)
-                plt.title("after clustring")
-                plt.plot(np.array(x), -np.array(y) + 1200, c='r', linewidth=0.6)
-
-        for stroke in self._data:
-            plt.subplot(133)
-            plt.title("original")
-            plt.xlim(300, 900)
-            plt.ylim(100, 950)
-            plt.plot(stroke.get_feature('x'), -stroke.get_feature('y') + 1200,
-                     linewidth=3 * stroke.average('pressure'),
-                     color='black')
-        plt.show()
-
     def shift_x(self, shift):
         for stroke in self._data:
             stroke.set_x(shift)

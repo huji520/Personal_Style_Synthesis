@@ -9,6 +9,8 @@ from skimage.transform import resize
 import Constants
 from Stroke import Stroke
 from Drawing import Drawing
+from sklearn.neighbors import NearestNeighbors
+import networkx as nx
 
 
 class Analyzer:
@@ -328,3 +330,55 @@ class Analyzer:
         points[:, 1] += shift
         return points
 
+    @staticmethod
+    def insert(points, idx):
+
+        # points = np.array(points)
+        x = (points[idx - 1][0] + points[idx][0]) / 2
+        y = (points[idx - 1][1] + points[idx][1]) / 2
+        points.insert(idx, [x, y])
+
+    @staticmethod
+    def remove(points, idx):
+        del points[idx]
+
+    @staticmethod
+    def remove_and_replace(points, idx):
+        """
+        Remove the samples with indexes idx and idx-1, and instead of them insert new sample (averaging of them)
+        Example: [[1,1], [2,2], [3,3], [4,4], [5,5], [6,6]], idx=2 --> [[1,1], [2.5,2.5], [4,4], [5,5], [6,6]]
+        :param points: array of 2D points
+        :param idx: idx and idx-1 will be removed, idx-1 will be insert instead
+        """
+        Analyzer.insert(points, idx)
+        Analyzer.remove(points, idx - 1)
+        Analyzer.remove(points, idx)
+
+    @staticmethod
+    def set_size(points, new_size):
+        i = 1
+        while len(points) < new_size:
+            Analyzer.insert(points, i)
+            i += 2
+            if i > len(points) - 2:
+                i = 1
+
+        while len(points) > new_size:
+            Analyzer.remove_and_replace(points, i)
+            i += 1
+            if i > len(points) - 2:
+                i = 1
+
+    @staticmethod
+    def set_order(points):
+        # find 2 nearest neighbors
+        points = np.asarray(points)
+        clf = NearestNeighbors(2).fit(points)
+        G = clf.kneighbors_graph()
+        T = nx.from_scipy_sparse_matrix(G)
+
+        # indexes of the new order
+        order = list(nx.dfs_preorder_nodes(T, 0))
+
+        # sorted arrays
+        return points[order]

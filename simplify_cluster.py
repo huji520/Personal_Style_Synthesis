@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 
 def distance(pt_1, pt_2):
@@ -48,7 +46,7 @@ def add_next_point(result, curve):
     next_point[0] /= lenP
     next_point[1] /= lenP
     curve.append(next_point)
-    return rmv
+    return rmv, next_point
 
 
 def remove_points(points, points_to_remove):
@@ -80,8 +78,10 @@ def calc_curve(points, dist):
     curve = []  # list of control points of the current curve we work on
     while len(points) > 0:
         result = closest_points(pt, points, dist)
+
         if len(result) > 0:
-            points_to_remove = add_next_point(result, curve)
+            points_to_remove, point = add_next_point(result, curve)
+            pt = point
             points = remove_points(points, points_to_remove)
 
             # if we are done append the end point
@@ -98,10 +98,10 @@ def calc_curve(points, dist):
                 pt = points.pop(0)
                 continue
 
-            curveSartpoint = curve[0]
+            curveSartpoint = curve[-1]
             result = closest_points(curveSartpoint, points, 2 * dist)
             if len(result) > 0:
-                curve.reverse()
+                # curve.reverse()
                 pt = result[0]
                 continue
             else:
@@ -114,12 +114,11 @@ def calc_curve(points, dist):
     return all_curve
 
 
-def simplify_cluster(x, y, index_name, dist, save_pairs=False):
+def simplify_cluster(x, y, dist):
     """
 
     :param x:
     :param y:
-    :param i:
     :param dist:
     :return:
     """
@@ -130,14 +129,6 @@ def simplify_cluster(x, y, index_name, dist, save_pairs=False):
     for curve in curves:
         for point in curve:
             points.append(point)
-    if save_pairs:
-        points = np.array(points)
-        plt.figure(index_name)
-        plt.subplot(121)
-        plt.plot(x, y, 'o', lw=0.1, ms=2, c='b')
-        plt.subplot(122)
-        plt.plot(points[:, 0], points[:, 1], 'o', lw=0.5, ms=2, c='r')
-        plt.savefig(os.path.join('simplify_clusters_dist10', '{0}.png'.format(index_name)))
 
     return points
 
