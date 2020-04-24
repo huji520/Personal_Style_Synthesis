@@ -306,7 +306,7 @@ class Drawing:
         return np.abs(abs(ang_1) - abs(ang_2))
 
     def group_strokes(self, euc_dist_threshold, dist_threshold, ang_threshold, max_num_of_strokes=0,
-        limit_strokes_num=False,):
+        limit_strokes_num=False, fixed_size_of_strokes=False):
         """
         divide all strokes in the drawing to groups according to distance and angle properties
         :param euc_dist_threshold: the maximal distance between strokes of which they'll belong to the same group
@@ -351,6 +351,12 @@ class Drawing:
             for stroke in group:
                 stroke._color = counter % 5
                 data = list(filter(lambda x: not np.array_equal(x, stroke), data))
+            if (fixed_size_of_strokes):
+                if len(group) < max_num_of_strokes:
+                    for i in range(max_num_of_strokes - len(group)):
+                        group.append(Stroke(group[0].get_data()))
+                        group[-1]._color = counter % 5
+            print(len(group))
             new_draws.append(Drawing(group, self._pic_path))
             counter = counter + 1
             # print(group)

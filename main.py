@@ -117,35 +117,34 @@ def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0
 if __name__ == "__main__":
     input_banana = "example_input/testdata banana.txt"
     input_fish = "example_input/testdata fish.txt"
-    input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
-
-    draw = Analyzer.create_drawing(input1, orig_data=False, stroke_size=200)
-    draw.plot_picture(title="output drawing (length=200)")
-
-    draw = Analyzer.create_drawing(input_banana, orig_data=False)
-    draw.plot_picture(title="input drawing")
-
-    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=False, already_simplified=True, new_method=True)
-    # new_draw.plot_picture(show_clusters=False)
-    # print(draw)
     input_aliza_D01 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
     input_hagai_D01 = "data/D_01/hagai/hagai__220519_0954_D_01.txt"
     input_stav_D01 = "data/D_01/stav/stav__290419_2050_D_01.txt"
 
-    draw = Analyzer.create_drawing(input_stav_D01, orig_data=False)
-    draw.plot_picture()
-    # clustered_draw, clusters = draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5,
-    #                                               max_num_of_strokes=5, limit_strokes_num=True)
-    # clustered_draw.plot_picture(show_clusters=True)
-    # strokes = []
-    # for cluster in clusters:
-    #     strokes.extend(cluster.get_data())
-    # rebuilt_draw = Drawing(strokes, clusters[0].get_ref_path(), clusters[0].get_pic_path())
-    # rebuilt_draw.plot_picture(show_clusters=True)
+    # draw = Analyzer.create_drawing(input_aliza_D01, orig_data=False, stroke_size=200)
+    # draw.plot_picture(title="output drawing (length=200)")
+    #
+    # draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    # draw.plot_picture(title="input drawing")
 
-    new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=False)
-    new_draw.plot_picture(show_clusters=False)
-    print(draw)
+    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=False, already_simplified=True, new_method=True)
+    # new_draw.plot_picture(show_clusters=False)
+    # print(draw)
+
+    draw = Analyzer.create_drawing(input_aliza_D01, orig_data=False, stroke_size=20)
+    # draw.plot_picture()
+    clustered_draw, clusters = draw.group_strokes(euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5,
+                                                  max_num_of_strokes=5, limit_strokes_num=True, fixed_size_of_strokes=True)
+    clustered_draw.plot_picture(show_clusters=True)
+    strokes = []
+    for cluster in clusters:
+        strokes.extend(cluster.get_data())
+    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
+    rebuilt_draw.plot_picture(show_clusters=True)
+
+    # new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=True, already_simplified=False)
+    # new_draw.plot_picture(show_clusters=False)
+    print(clustered_draw)
 
     # print(draw.get_data()[0])
     # print()
