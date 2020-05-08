@@ -1,12 +1,12 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, Conv2DTranspose, Activation, Reshape, LeakyReLU
-from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense, Flatten, Activation, Reshape
+from tensorflow.keras import Model, backend
 import numpy as np
 import pickle
-import matplotlib.pyplot as plt
+import sys
 
-simplify_clusters_shape = pickle.load(open('x/x.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/x_norm.p', "rb"))
+person_clusters_shape = pickle.load(open('y/y_norm.p', "rb"))
 
 x_train = simplify_clusters_shape[:-100]
 y_train = person_clusters_shape[:-100]
@@ -14,11 +14,9 @@ y_train = person_clusters_shape[:-100]
 x_test = simplify_clusters_shape[-100:]
 y_test = person_clusters_shape[-100:]
 
-# x_train = x_train[..., tf.newaxis]
-# x_test = x_test[..., tf.newaxis]
+x_train = x_train[..., tf.newaxis]
 
 train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(32)
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
 
 print(x_train.shape)
 print(y_train.shape)
@@ -27,22 +25,22 @@ print(y_train.shape)
 class MyModel(Model):
     def __init__(self):
         super(MyModel, self).__init__()
-        # OPS
-        self.relu = Activation('relu')
-        self.sigmoid = Activation('sigmoid')
         self.reshape = Reshape((5, 20, 2))
-
-        # Fully connected layers
         self.flatten = Flatten()
-        self.dense1 = Dense(200)
+        self.dense1 = Dense(200, activation='relu')
+        self.dense2 = Dense(200, activation='relu')
+        self.dense3 = Dense(1000, activation='relu')
+        self.dense4 = Dense(200, activation='relu')
+        self.dense5 = Dense(200)
 
     def decode(self, x):
-        # activate the decoder part of the network
         x = self.flatten(x)
         x = self.dense1(x)
-        x = self.relu(x)
+        x = self.dense2(x)
+        x = self.dense3(x)
+        x = self.dense4(x)
+        x = self.dense5(x)
         x = self.reshape(x)
-        x = self.sigmoid(x)
         return x
 
     def call(self, x):
@@ -51,26 +49,24 @@ class MyModel(Model):
 
 optimizer = tf.keras.optimizers.Adam()
 train_loss = tf.keras.metrics.Mean(name='train_loss')
-# train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
 test_loss = tf.keras.metrics.Mean(name='test_loss')
 
 
 @tf.function
 def train_step(model, images, labels, loss_object):
-
-    with tf.Session() as sess:  print(labels[0].eval())
-    print()
-    print(images[0].eval())
-    exit(1)
-
     with tf.GradientTape() as tape:
         predictions = model(images)
-        loss = loss_object(labels, predictions)
+        # print("predictions.shape", predictions.shape)
+        # tf.print("predictions", predictions, output_stream=sys.stdout)
+        # print()
+        # print("image.shape", images.shape)
+        # tf.print("images", images, output_stream=sys.stdout)
+        # print()
+        loss = loss_object(tf.cast(labels, tf.float32), tf.cast(predictions, tf.float32))
         gradients = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
     train_loss(loss)
-    # train_accuracy(labels, predictions)
 
 
 def train_model(model, epochs, loss_object):
@@ -79,43 +75,55 @@ def train_model(model, epochs, loss_object):
         for images, labels in train_ds:
             train_step(model, images, labels, loss_object)
 
-            template = 'Epoch {}, Loss: {}, Accuracy: {}'
-        # print(template.format(epoch + 1, train_loss.result(), train_accuracy.result() * 100))
-        # print(" -- ", flush=True)
-
-        # Reset the metrics for the next epoch
+        print(f'Epoch {epoch + 1}, Loss: {train_loss.result()}\n -- ')
         train_loss.reset_states()
-        # train_accuracy.reset_states()
 
-def visualize_reconstruction(images, model):
-    print(images[0].squeeze())
-    reconstruction = model(images[0][tf.newaxis, :, :]).numpy().squeeze()
-    print(reconstruction)
-    # i = 1
-    # j = 1
-    # plt.figure(figsize=(10, 10))
-    # for im in images:
-    #     reconstruction = model(im[tf.newaxis, :, :, :]).numpy().squeeze()
-    #     print(reconstruction)
 
-        # plt.subplot(len(images), 2, i)
-        # plt.imshow(im.squeeze(), cmap=plt.get_cmap('gray'))
-        # plt.title(f'original image {j}')
-        # plt.subplot(len(images), 2, i + 1)
-        # plt.imshow(reconstruction, cmap=plt.get_cmap('gray'))
-        # plt.title(f'image {j} reconstruction')
-        # i += 2
-        # j += 1
-    # plt.subplots_adjust(hspace=0.8)
-    # plt.show()
+def visualize_reconstruction(simplified_test, label_test, model):
+    import matplotlib.pyplot as plt
+
+    sim = np.array(simplified_test)
+    plt.subplot(131)
+    plt.title("simplify")
+    plt.plot(sim[:,0], sim[:,1], 'o')
+
+    lab = np.array(label_test)
+    plt.subplot(132)
+    plt.title("label")
+    for i in range(5):
+        plt.plot(lab[i][:, 0], lab[i][:, 1])
+
+    reconstruction = model(simplified_test[tf.newaxis, :, :]).numpy().squeeze()
+    rec = np.array(reconstruction)
+    plt.subplot(133)
+    plt.title("style")
+    for j in range(5):
+        plt.plot(rec[j][:, 0], rec[j][:, 1])
+
+    plt.show()
+
+def loss_object_func(labels, predictions):
+    # tf.print("predictions", predictions[:1,:1,:3,:], output_stream=sys.stdout)
+    # tf.print("labels", labels[:1,:1,:3,:], output_stream=sys.stdout)
+    # tf.print("square", tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), output_stream=sys.stdout)
+    # tf.print("sum+square", tf.keras.backend.sum(tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), axis=3),
+    #          output_stream=sys.stdout)
+    # tf.print("sum+square+sqrt",
+    #          tf.sqrt(tf.keras.backend.sum(tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), axis=3)),
+    #          output_stream=sys.stdout)
+    # tf.print("loss", tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), axis=3))),
+    #          output_stream=sys.stdout)
+    return tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels - predictions), axis=3)))
 
 
 def run():
-    loss_object = tf.keras.losses.binary_crossentropy
     model = MyModel()
-    train_model(model, 5, loss_object)
-    i = np.random.randint(0, len(x_test), size=5)
-    images = x_test[i]
-    visualize_reconstruction(images, model)
+    train_model(model, 10, loss_object_func)
+    model.summary()
+    for j in range(3):
+        i = np.random.randint(0, len(x_test))
+        simplified_test = x_test[i]
+        label_test = y_test[i]
+        visualize_reconstruction(simplified_test, label_test, model)
 
-run()
+# run()
