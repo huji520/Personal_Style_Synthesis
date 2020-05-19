@@ -8,6 +8,8 @@ import os
 import nn
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import copy
+
 
 def normalize_center_of_mass(points):
     shift_x = points[:, 0].mean()
@@ -15,6 +17,7 @@ def normalize_center_of_mass(points):
     points[:, 0] -= shift_x
     points[:, 1] -= shift_y
     return shift_x, shift_y
+
 
 def get_simplified_draw(clusters, already_simplified=False):
     """
@@ -38,7 +41,7 @@ def get_simplified_draw(clusters, already_simplified=False):
             p = np.stack((x,y), axis=1)
         # Case which the input should be simplify, like the participants inputs
         else:
-            p = simplify_cluster.simplify_cluster(x, y, dist=10)
+            p = simplify_cluster.simplify_cluster(x, y, i)
 
         # This is a bug in simplify cluster, p should never be zero
         if len(p) == 0:
@@ -144,7 +147,6 @@ def transfer_style2(draw, already_simplified=False, euc_dist_threshold=10, dist_
             simplified_clusters.append(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
 
     for simplify in simplified_clusters:
-        print(np.array(simplify).shape)
         shift_x, shift_y = normalize_center_of_mass(simplify)
         reconstruction = model(simplify[tf.newaxis, :, :]).numpy().squeeze()
         reconstruction[:, :, 0] += shift_x
@@ -152,7 +154,6 @@ def transfer_style2(draw, already_simplified=False, euc_dist_threshold=10, dist_
         arr.extend(reconstruction)
 
     for stroke in arr:
-        print(stroke)
         plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1])
 
     plt.gca().invert_yaxis()
@@ -194,232 +195,110 @@ def l2_stroke(s1, s2):
     return error
 
 
+def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, put_zeros=False):
+    simplify_path = os.path.join("pickle", "simplify", base_path)
+    person_clusters_path = os.path.join("pickle", "clusters", base_path)
+    simplify_clusters = pickle.load(open(simplify_path, "rb"))
+    person_clusters = pickle.load(open(person_clusters_path, "rb"))
+
+    if rotation:
+        print("Start rotate simplify")
+        simplify_clusters_new = []
+        for i, sim in enumerate(simplify_clusters):
+            print(f"{i} out of {len(simplify_clusters)}")
+            for ang in range(0, 325, 36):
+                simplify_clusters_new.append(Analyzer.rotate(copy.deepcopy(sim), ang))
+        print("End rotate simplify")
+
+        print("Start rotate clusters")
+        person_clusters_new = []
+        for i, cluster in enumerate(person_clusters):
+            print(f"{i} out of {len(person_clusters)}")
+            person_clusters_new.append(copy.deepcopy(cluster))
+            for ang in range(9):
+                cluster.rotate(36)
+                person_clusters_new.append(copy.deepcopy(cluster))
+        print("End rotate clusters")
+    else:
+        simplify_clusters_new = simplify_clusters
+        person_clusters_new = person_clusters
+
+    print("Start fix the shapes")
+    simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters_new), 20, 2))
+    for i, stroke in enumerate(simplify_clusters_new):
+        for j, point in enumerate(stroke):
+            simplify_clusters_shape[i][j] = point
+
+    person_clusters_shape = np.zeros(shape=(len(person_clusters_new), 5, 20, 2))
+    for i, cluster in enumerate(person_clusters_new):
+        for j, stroke in enumerate(cluster.get_data()):
+            pairs = np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1)
+            for k, point in enumerate(pairs):
+                person_clusters_shape[i][j][k] = point
+    print("End fix the shapes")
+
+    print("Start normalize (center of mass at (0,0)")
+    # Put center of mass at (0,0)
+    for sim in simplify_clusters_shape:
+        sim[:, 0] -= sim[:, 0].mean()
+        sim[:, 1] -= sim[:, 1].mean()
+
+    for per in person_clusters_shape:
+        per[:, :, 0] -= per[:, :, 0].mean()
+        per[:, :, 1] -= per[:, :, 1].mean()
+    print("End normalize (center of mass at (0,0)")
+
+    if put_zeros:
+        print("Start pushing zeros instead of duplicates")
+        for cluster in person_clusters_shape:
+            for i in range(1, len(cluster)):
+                if np.all(cluster[i] == cluster[0]):
+                    cluster[i][:] = 0
+        print("End pushing zeros instead of duplicates")
+
+    pickle.dump(simplify_clusters_shape, open(x_output_path, "wb"))
+    pickle.dump(person_clusters_shape, open(y_output_path, "wb"))
+
+
 if __name__ == "__main__":
 
     input_banana = "example_input/testdata banana.txt"
     input_fish = "example_input/testdata fish.txt"
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=20)
-    new_draw = transfer_style2(draw, already_simplified=True)
+    # aliza = get_participant("aliza", load_person=True, stroke_length=20)
+    # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=20)
+
+    # draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=20)
+    # new_draw = transfer_style2(draw, already_simplified=True)
     # new_draw.plot_picture(show_clusters=False)
     # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
     # new_draw.plot_picture(show_clusters=False)
 
-    # base_path = f"aliza_10_5_0.5_stroke_length_20.p"
-    # simplify_path = os.path.join("pickle", "simplify", base_path)
-    # person_clusters_path = os.path.join("pickle", "clusters", base_path)
-    # simplify_clusters = pickle.load(open(simplify_path, "rb"))
-    # person_clusters = pickle.load(open(person_clusters_path, "rb"))
+    # base_path = f"aliza_40_10_0.5_stroke_length_20.p"
+    # y_path = 'y/y40_10_rotate.p'
+    # x_path = 'x/x40_10_rotate.p'
+    # save_dict_for_nn(base_path, x_path, y_path)
 
-    # simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters), 20, 2))
-    # for i, stroke in enumerate(simplify_clusters):
-    #     for j, point in enumerate(stroke):
-    #         simplify_clusters_shape[i][j] = point
+    # aliza = Participant("aliza", stroke_length=20)
+    # draws = aliza.get_all_files_of_participant()
+    # pickle.dump(draws, open("aliza_draws.p", "wb"))
+    aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
     #
-    # person_clusters_shape = np.zeros(shape=(len(person_clusters), 5, 20, 2))
-    # for i, cluster in enumerate(person_clusters):
-    #     for j, stroke in enumerate(cluster.get_data()):
-    #         pairs = np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1)
-    #         for k, point in enumerate(pairs):
-    #             person_clusters_shape[i][j][k] = point
+    # # draw = Analyzer.create_drawing(input1, stroke_size=20)
     #
-    # pickle.dump(simplify_clusters_shape, open('x/x.p', "wb"))
-    # pickle.dump(person_clusters_shape, open('y/y.p', "wb"))
-
-
-
-    # import matplotlib.pyplot as plt
-    # plt.subplot(121)
-    # plt.title("simplify")
-    # plt.plot(simplify_clusters_shape[48][:,0], simplify_clusters_shape[8][:,1])
+    draw = aliza_draws[0]
     #
-    # plt.subplot(122)
-    # plt.title("cluster")
-    # for l in range(5):
-    #     plt.plot(person_clusters_shape[48][l][:, 0], person_clusters_shape[8][l][:, 1])
+    clusters = draw.group_strokes(100, 20, 0.5)[1]
+    # clusters = draw.group_strokes(100, 20, 0.5, max_num_of_strokes=5, limit_strokes_num=True, fixed_size_of_strokes=True)[1]
+
+    # # for cluster in clusters:
+    # #     cluster.plot_picture(show_clusters=True, plt_show=False)
+    #
+    strokes = []
+    for cluster in clusters:
+        strokes.extend(cluster.get_data())
+    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path(), is_cluster=True)
+    print(rebuilt_draw)
+    rebuilt_draw.plot_picture(show_clusters=True)
     # plt.show()
-
-
-
-    # for simplify in simplify_clusters:
-    #     print((simplify))
-    # person_clusters = np.array(person_clusters)
-
-    # print(simplify_clusters.shape)
-    # print(person_clusters.shape)
-
-
-    # import matplotlib.pyplot as plt
-    # for i in range(200):
-    #     plt.figure(i)
-    #     plt.subplot(121)
-    #     plt.title("simplify")
-    #     plt.plot(np.array(simplify_clusters[i])[:,0], np.array(simplify_clusters[i])[:,1])
-    #
-    #     plt.subplot(122)
-    #     plt.title("style")
-    #     for stroke in person_clusters[i].get_data():
-    #         plt.plot(stroke.get_feature('x'), stroke.get_feature('y'))
-    #
-    #     plt.savefig(f'pairs/{i}.jpg')
-
-    points = np.array(  [[466,  434 ],
-                         [466,  434 ],
-                         [467,  434 ],
-                         [468,  434 ],
-                         [469,  434 ],
-                         [470,  433 ],
-                         [472,  433 ],
-                         [473,  432 ],
-                         [475,  432 ],
-                         [476,  432 ],
-                         [478,  431 ],
-                         [474,  432 ],
-                         [471,  433 ],
-                         [467,  434 ],
-                         [464,  435 ],
-                         [460,  437 ],
-                         [457,  438 ],
-                         [453,  439 ],
-                         [450,  440 ],
-                         [450,  440 ]])
-
-    points2 = np.array([[[460,   431 ],
-                          [461,  432 ],
-                          [462,  430 ],
-                          [464,  432 ],
-                          [463,  431 ],
-                          [464,  430 ],
-                          [464,  431 ],
-                          [464,  430 ],
-                          [464,  430 ],
-                          [465,  430 ],
-                          [465,  430 ],
-                          [465,  430 ],
-                          [465,  431 ],
-                          [466,  430 ],
-                          [467,  431 ],
-                          [469,  432 ],
-                          [470,  434 ],
-                          [471,  434 ],
-                          [472,  435 ],
-                          [473,  436 ]],
-
-                         [[461,  431 ],
-                          [462,  431 ],
-                          [464,  430 ],
-                          [464,  430 ],
-                          [464,  430 ],
-                          [464,  430 ],
-                          [465,  431 ],
-                          [465,  429 ],
-                          [466,  429 ],
-                          [466,  429 ],
-                          [466,  429 ],
-                          [465,  429 ],
-                          [466,  430 ],
-                          [466,  430 ],
-                          [467,  432 ],
-                          [468,  433 ],
-                          [468,  435 ],
-                          [468,  435 ],
-                          [469,  437 ],
-                          [470,  438 ]],
-
-                         [[462,  433 ],
-                          [463,  433 ],
-                          [464,  433 ],
-                          [465,  433 ],
-                          [465,  432 ],
-                          [465,  432 ],
-                          [465,  432 ],
-                          [466,  432 ],
-                          [466,  432 ],
-                          [467,  430 ],
-                          [466,  429 ],
-                          [466,  430 ],
-                          [467,  429 ],
-                          [468,  430 ],
-                          [468,  431 ],
-                          [469,  431 ],
-                          [469,  433 ],
-                          [470,  433 ],
-                          [471,  435 ],
-                          [471,  436 ]],
-
-                         [[460,  430 ],
-                          [461,  431 ],
-                          [462,  431 ],
-                          [463,  432 ],
-                          [463,  430 ],
-                          [463,  430 ],
-                          [464,  430 ],
-                          [464,  430 ],
-                          [464,  429 ],
-                          [465,  431 ],
-                          [465,  429 ],
-                          [465,  429 ],
-                          [465,  430 ],
-                          [465,  430 ],
-                          [465,  431 ],
-                          [467,  433 ],
-                          [468,  434 ],
-                          [469,  435 ],
-                          [470,  436 ],
-                          [471,  437 ]],
-
-                         [[461,  430 ],
-                          [460,  430 ],
-                          [461,  429 ],
-                          [463,  431 ],
-                          [464,  430 ],
-                          [463,  430 ],
-                          [465,  430 ],
-                          [465,  429 ],
-                          [464,  429 ],
-                          [465,  430 ],
-                          [465,  429 ],
-                          [465,  429 ],
-                          [465,  429 ],
-                          [465,  430 ],
-                          [467,  431 ],
-                          [469,  432 ],
-                          [469,  434 ],
-                          [471,  435 ],
-                          [472,  435 ],
-                          [472,  437 ]]])
-
-    # simplify_clusters_shape = pickle.load(open('x/x.p', "rb"))
-    # person_clusters_shape = pickle.load(open('y/y.p', "rb"))
-    #
-    # for sim in simplify_clusters_shape:
-    #     sim[:, 0] -= sim[:, 0].mean()
-    #     sim[:, 1] -= sim[:, 1].mean()
-    #
-    # for per in person_clusters_shape:
-    #     per[:, :, 0] -= per[:, :, 0].mean()
-    #     per[:, :, 1] -= per[:, :, 1].mean()
-    #
-    # pickle.dump(simplify_clusters_shape, open('x/x_norm.p', "wb"))
-    # pickle.dump(person_clusters_shape, open('y/y_norm.p', "wb"))
-
-    # import matplotlib.pyplot as plt
-    # plt.subplot(121)
-    # plt.title("simplify")
-    # plt.plot(simplify_clusters_shape[0][:,0], simplify_clusters_shape[0][:,1], 'o')
-    #
-    # plt.subplot(122)
-    # plt.title("output")
-    # for i in range(5):
-    #     plt.plot(person_clusters_shape[0][i][:, 0], person_clusters_shape[0][i][:, 1], 'o')
-    # plt.show()
-
-
-    #
-    # a = np.array([[[1,2], [3,6], [4,8], [11,16]], [[1,2], [3,6], [4,8], [11,16]]])
-    # b = np.array([[[1,2], [3,6], [4,8], [12,17]], [[1,2], [3,6], [4,9], [12,17]]])
-    # print(np.sum((np.linalg.norm(np.array(a) - np.array(b), axis=2))))
-    # print(l2_stroke(a,b))
-    #
-    # print(np.sum((np.linalg.norm(np.array(a[0]) - np.array(b[0]), axis=1))) + np.sum((np.linalg.norm(np.array(a[1]) - np.array(b[1]), axis=1))))

@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 class Participant:
     def __init__(self, name, stroke_length=None):
         self._name = name
-        self._data = self.get_all_files_of_participant(stroke_length)
-        self.clusters = []
         self.stroke_length = stroke_length
+        self._data = self.get_all_files_of_participant()
+        self.clusters = []
 
     def get_data(self):
         return self._data[0]
@@ -24,7 +24,7 @@ class Participant:
     def get_name(self):
         return self._name
 
-    def get_all_files_of_participant(self, stroke_length):
+    def get_all_files_of_participant(self):
         """
         :return: list of Drawing of the participant
         """
@@ -43,8 +43,8 @@ class Participant:
                                     if file.endswith(".png"):
                                         pic_list.append("data/" + picture + "/" + person + "/" + file)
                             if path is not None:
-                                if stroke_length:
-                                    drawing = Analyzer.create_drawing(path, stroke_size=stroke_length)
+                                if self.stroke_length:
+                                    drawing = Analyzer.create_drawing(path, stroke_size=self.stroke_length)
                                 else:
                                     drawing = Analyzer.create_drawing(path)
 
@@ -172,12 +172,12 @@ class Participant:
                 x.extend(stroke.get_feature('x'))
                 y.extend(stroke.get_feature('y'))
 
-            p = simplify_cluster.simplify_cluster(x, y, dist=10)
+            p = simplify_cluster.simplify_cluster(x, y, i)
             if min_length < len(p) < max_length:
                 if simplify_size:
                     Analyzer.set_size(p, simplify_size)
                 error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
-                if error < 3:
+                if error < 200:
                     indexes.append(i)
                 simplify_clusters.append(p)
 

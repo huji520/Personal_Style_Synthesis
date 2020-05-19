@@ -1,5 +1,6 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
+import copy
 
 def distance(pt_1, pt_2):
     """
@@ -114,15 +115,78 @@ def calc_curve(points, dist):
     return all_curve
 
 
-def simplify_cluster(x, y, dist):
+def in_box(start_x, end_x, start_y, end_y, point):
+    x = point[0]
+    y = point[1]
+    if start_x < x < end_x and start_y < y < end_y:
+        return True
+    return False
+
+
+def a(points, box_size):
+    simplify = []
+    start_x = int(np.min(points[:, 0]))
+    end_x = int(np.max(points[:, 0]) + 1)
+    start_y = int(np.min(points[:, 1]))
+    end_y = int(np.max(points[:, 1]) + 1)
+    for i in range(start_x, end_x+box_size, box_size):
+        for j in range(start_y, end_y+box_size, box_size):
+            next_point = [0, 0]
+            counter = 0
+            for point in points:
+                if in_box(i, i+box_size, j, j+box_size, point):
+                    next_point[0] += point[0]
+                    next_point[1] += point[1]
+                    counter += 1
+            if counter > 0:
+                next_point[0] /= counter
+                next_point[1] /= counter
+                simplify.append(next_point)
+
+    return simplify
+
+
+def get_dist(x, y):
+    x = np.array(x)
+    y = np.array(y)
+    h = np.max(y) - np.min(y)
+    w = np.max(x) - np.min(x)
+    if h < 6 and w < 6:
+        return 3
+    if h < 10 and w < 10:
+        return 4
+    if h < 16 and w < 16:
+        return 5
+    if h < 22 and w < 22:
+        return 6
+    if h < 28 and w < 28:
+        return 7
+    if h < 34 and w < 34:
+        return 8
+    if h < 40 and w < 40:
+        return 9
+    if h < 50 and w < 50:
+        return 10
+    if h < 70 and w < 70:
+        return 12
+    if h < 100 and w < 100:
+        return 14
+    else:
+        return 16
+
+
+def simplify_cluster(x, y, i):
     """
 
     :param x:
     :param y:
-    :param dist:
     :return:
     """
+    plt.title("cluster")
+    plt.plot(x,y)
+    dist = get_dist(x, y)
     points = np.stack((x, y), axis=1)
+    # points2 = copy.deepcopy(points)
     points = list(points)
     curves = np.array(calc_curve(points, dist))
     points = []
@@ -130,6 +194,22 @@ def simplify_cluster(x, y, dist):
         for point in curve:
             points.append(point)
 
+    # points3 = a(points2, 5)
+    # plt.figure(i)
+    #
+    # plt.subplot(131)
+    # plt.plot(x, y, 'o')
+    # plt.title('cluster')
+    #
+    # plt.subplot(132)
+    # plt.plot(np.array(points)[:,0], np.array(points)[:,1], 'o')
+    # plt.title('simplify')
+    #
+    # plt.subplot(133)
+    # plt.plot(np.array(points3)[:, 0], np.array(points3)[:, 1], 'o')
+    # plt.title('simplify new')
+    #
+    # plt.savefig(f'results/simplify/{i}.png')
     return points
 
 

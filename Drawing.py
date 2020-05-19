@@ -7,13 +7,14 @@ import simplify_cluster
 
 
 class Drawing:
-    def __init__(self, data, pic_path, stroke_size=None):
+    def __init__(self, data, pic_path, stroke_size=None, is_cluster=False):
         """
         :param data: list of Strokes objects
         """
         self._data = data
         self._pic_path = pic_path
         self.set_strokes_size(stroke_size)
+        self._is_cluster = is_cluster
 
     def set_strokes_size(self, stroke_size):
         if stroke_size:
@@ -44,6 +45,8 @@ class Drawing:
         """
         :return: number of strokes in the file
         """
+        if self._is_cluster:
+            return len(self._data)
         return int(len(self._data) / 2)  # half is pauses
 
     def total_length(self):
@@ -178,7 +181,7 @@ class Drawing:
 
         return [start_x, start_y, end_x, end_y]
 
-    def plot_picture(self, show_reference=False, show_clusters=False, title="", num=1, plt_show=True):
+    def plot_picture(self, show_reference=False, show_clusters=False, title="", num=1, plt_show=True, show_by_labels=False):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
@@ -190,28 +193,33 @@ class Drawing:
         # drawing
         plt.figure(num=num, figsize=(f * 2.5, f * h))
         for stroke in self._data:
-            avg_pressure = stroke.average('pressure') if  0 < stroke.average('pressure') < 0.15 else 0.15
+            avg_pressure = stroke.average('pressure') if 0 < stroke.average('pressure') < 0.15 else 0.15
             if show_clusters:
-                if stroke._color == 0:
-                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=5 * avg_pressure,
-                             color='black')
-                elif stroke._color == 1:
-                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=5 * avg_pressure,
-                             color='red')
-                elif stroke._color == 2:
-                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=3 * avg_pressure,
-                             color='blue')
-                elif stroke._color == 3:
-                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=5 * avg_pressure,
-                             color='green')
+                if show_by_labels:
+                    plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
+                             linewidth=7 * avg_pressure,
+                             label=f'{stroke._group}')
                 else:
-                    plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
-                             linewidth=5 * avg_pressure,
-                             color='purple')
+                    if stroke._color == 0:
+                        plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                                 linewidth=5 * avg_pressure,
+                                 color='black')
+                    elif stroke._color == 1:
+                        plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                                 linewidth=5 * avg_pressure,
+                                 color='red')
+                    elif stroke._color == 2:
+                        plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                                 linewidth=3 * avg_pressure,
+                                 color='blue')
+                    elif stroke._color == 3:
+                        plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                                 linewidth=5 * avg_pressure,
+                                 color='green')
+                    else:
+                        plt.plot(stroke.get_feature('x'),stroke.get_feature('y'),
+                                 linewidth=5 * avg_pressure,
+                                 color='purple')
             else:
                 plt.plot(stroke.get_feature('x'), stroke.get_feature('y'),
                          linewidth= 0.5 * (avg_pressure / (0.15 + avg_pressure)), color='black')
@@ -315,7 +323,7 @@ class Drawing:
         """
         print("Start clustering with group_strokes function")
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()] # <= 250]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length() ]
         counter = 0
         while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
@@ -335,7 +343,7 @@ class Drawing:
                 if (self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
                      np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold
                      or
-                     (self.strokes_distance(np.array(data[0].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
+                     (self.strokes_distance(np.array(data[i].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
                      dist_threshold)
                      and
                      self.strokes_angle_difference(np.array(data[i].get_data()[1:3]).T,
@@ -353,12 +361,13 @@ class Drawing:
             if (fixed_size_of_strokes):
                 if len(group) < max_num_of_strokes:
                     for j in range(max_num_of_strokes - len(group)):
-                        group.append(Stroke(copy.deepcopy(group[0].get_data())))
+                        group.append(copy.deepcopy(group[0]))
                         group[-1]._color = counter % 5
 
-            new_draws.append(Drawing(group, self._pic_path))
+            new_draws.append(Drawing(group, self._pic_path, is_cluster=True))
             counter = counter + 1
-            # print(group)
+            # print(f"Number of strokes in current cluster: {len(group)}")
+        print(f"Number of clusters: {len(new_draws)}")
         print("End clustering with group_strokes function\n")
         return self, new_draws
 
@@ -378,6 +387,9 @@ class Drawing:
         s = f"The total number of strokes (without pause strokes) is: {self.size()}\n\n"
         for i, stroke in enumerate(self._data):
             if not stroke.is_pause():
-                s += f"Current index: {i//2}\n"
+                if self._is_cluster:
+                    s += f"Current index: {i}\n"
+                else:
+                    s += f"Current index: {i//2}\n"
                 s += f"{stroke.__str__()}\n"
         return s

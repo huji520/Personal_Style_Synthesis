@@ -107,6 +107,14 @@ class Stroke:
 
         return time
 
+    def reset_data(self):
+        """
+        Set x and y values to zero
+        """
+        self._data[Constants.X][:] = 0
+        self._data[Constants.Y][:] = 0
+        return self
+
     def set_x(self, shift):
         """
         Shifting the x values of the stroke
@@ -207,10 +215,5 @@ class Stroke:
             s += f"{format(self._data[Constants.TIME][i], '.3f')}\t" \
                  f"{self._data[Constants.X][i]}\t" \
                  f"{self._data[Constants.Y][i]}\t" \
-                 f"{format(self._data[Constants.PRESSURE][i], '.3f')}\t\t" \
-                 f"{format(self._data[Constants.TILT_X][i], '.3f')}\t\t" \
-                 f"{format(self._data[Constants.TILT_Y][i], '.3f')}\t\t" \
-                 f"{format(self._data[Constants.AZIMUTH][i], '.3f')}\t\t" \
-                 f"{format(self._data[Constants.SIDE_PRESSURE][i], '.3f')}\t\t\t" \
-                 f"{format(self._data[Constants.ROTATION][i], '.3f')}\n"
+                 f"{format(self._data[Constants.PRESSURE][i], '.3f')}\n"
         return s
