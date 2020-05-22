@@ -6,25 +6,25 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 
-simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40_rotation_10.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40_rotation_10.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40_rotation_360.p', "rb"))
+person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40_rotation_360.p', "rb"))
 
-for i in range(0, 20):
-    plt.figure(i)
-    plt.subplot(121)
-    plt.title("simplify")
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
-    plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
-
-    lab = np.array(person_clusters_shape[i])
-    plt.subplot(122)
-    plt.title("cluster")
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
-    for j in range(5):
-        plt.plot(lab[j][:, 0], lab[j][:, 1])
-    plt.savefig(f'results/input/40_10_simplify_1_40/{i}.png')
+# for i in range(0, 20):
+#     plt.figure(i)
+#     plt.subplot(121)
+#     plt.title("simplify")
+#     plt.xlim(-100, 100)
+#     plt.ylim(-100, 100)
+#     plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
+#
+#     lab = np.array(person_clusters_shape[i])
+#     plt.subplot(122)
+#     plt.title("cluster")
+#     plt.xlim(-100, 100)
+#     plt.ylim(-100, 100)
+#     for j in range(5):
+#         plt.plot(lab[j][:, 0], lab[j][:, 1])
+#     plt.savefig(f'results/input/40_10_simplify_1_40/{i}.png')
 
 
 indexes1 = np.arange(len(simplify_clusters_shape))
@@ -33,19 +33,19 @@ np.random.shuffle(indexes1)
 simplify_clusters_shape = simplify_clusters_shape[indexes1]
 person_clusters_shape = person_clusters_shape[indexes1]
 
-x_train = simplify_clusters_shape[:-100]
-y_train = person_clusters_shape[:-100]
+x_train = simplify_clusters_shape[:-10000]
+y_train = person_clusters_shape[:-10000]
 
-x_test = simplify_clusters_shape[-100:]
-y_test = person_clusters_shape[-100:]
+x_test = simplify_clusters_shape[-10000:]
+y_test = person_clusters_shape[-10000:]
 
 x_train = x_train[..., tf.newaxis]
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(16)
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(16)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(32)
+test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
 
-# print(x_train.shape)
-# print(y_train.shape)
+print(x_train.shape)
+print(y_train.shape)
 
 
 class MyModel(Model):
@@ -108,6 +108,12 @@ def train_model(model, epochs, loss_object, graph_train, graph_test):
         for images_test, labels_test in test_ds:
             test_step(model, images_test, labels_test, loss_object)
         print(f'Epoch {epoch + 1}, Train loss: {train_loss.result()}, Test loss: {test_loss.result()}\n -- ')
+        if epoch % 10 == 0 and epoch != 0:
+            model.save_weights(f"results/weights/{epoch}.tf")
+            for k in range(30):
+                simplified_test = x_test[k]
+                label_test = y_test[k]
+                visualize_reconstruction(simplified_test, label_test, model, k, epoch)
 
         graph_train.append(train_loss.result())
         graph_test.append(test_loss.result())
@@ -203,12 +209,15 @@ def loss_object_func(labels, predictions):
     # tf.print("loss", tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), axis=3))),
     #          output_stream=sys.stdout)
 
-    return tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels - predictions), axis=3))) / 160
+    return tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels - predictions), axis=3)) / 100) / 32
 
 
-def run():
+def run(load=0):
     model = MyModel()
-    epoch = 501
+    epoch = 100
+    if load > 0:
+        model.load_weights(f"results/weights/{load}.tf")
+
     graph_train = []
     graph_test = []
     train_model(model, epoch, loss_object_func, graph_train, graph_test)
@@ -219,6 +228,7 @@ def run():
     plt.title("loss vs epoch")
     plt.xlabel("epoch")
     plt.ylabel("loss")
+
     if not os.path.isdir("results"):
         os.mkdir("results")
     plt.savefig(f'results/{epoch}.png')
@@ -232,4 +242,4 @@ def run():
         visualize_train(simplified_train, label_train, model, k, epoch)
 
 
-run()
+# run()

@@ -5,7 +5,7 @@ from Participant import Participant
 import numpy as np
 import pickle
 import os
-# import nn
+import nn
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import copy
@@ -19,7 +19,7 @@ def normalize_center_of_mass(points):
     return shift_x, shift_y
 
 
-def get_simplified_draw(clusters, already_simplified=False):
+def get_simplified_draw(clusters, already_simplified=False, simplified_size=None):
     """
     Get array of clusters, making every cluster to be an array of 2D points, then simplify this array (if needed).
     :param clusters: Array of clusters (which are Drawing objects)
@@ -47,6 +47,10 @@ def get_simplified_draw(clusters, already_simplified=False):
         if len(p) == 0:
             simplified_clusters.append(np.stack((x,y), axis=1))
             continue
+
+        if simplified_size:
+            Analyzer.set_size(p, simplified_size)
+
         simplified_clusters.append(p)
     print("End simplify the given input\n")
     return simplified_clusters
@@ -120,7 +124,7 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     return Drawing(strokes, clusters[0].get_pic_path())
 
 
-def transfer_style2(draw, already_simplified=False, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
+def transfer_style2(draw, already_simplified=False, euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5):
     """
     Get a drawing and person name, and generate a new draw with the style of the given person name.
     :param simplify_size:
@@ -139,22 +143,26 @@ def transfer_style2(draw, already_simplified=False, euc_dist_threshold=10, dist_
     :return: a draw object with the wanted style
     """
     model = nn.MyModel()
-    nn.train_model(model, 100, nn.loss_object_func)
+    model.load_weights(f"results/weights/30.tf")
     arr = []
-    simplified_clusters = []
-    for stroke in draw.get_data():
-        if not stroke.is_pause():
-            simplified_clusters.append(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
+    if already_simplified:
+        simplified_clusters = []
+        for stroke in draw.get_data():
+            if not stroke.is_pause():
+                simplified_clusters.append(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
+    else:
+        clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
+        simplified_clusters = get_simplified_draw(clusters, already_simplified, simplified_size=40)
 
     for simplify in simplified_clusters:
-        shift_x, shift_y = normalize_center_of_mass(simplify)
+        shift_x, shift_y = normalize_center_of_mass(np.array(simplify))
         reconstruction = model(simplify[tf.newaxis, :, :]).numpy().squeeze()
         reconstruction[:, :, 0] += shift_x
         reconstruction[:, :, 1] += shift_y
         arr.extend(reconstruction)
 
     for stroke in arr:
-        plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1])
+        plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1], color='black')
 
     plt.gca().invert_yaxis()
     plt.show()
@@ -206,7 +214,7 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
         simplify_clusters_new = []
         for i, sim in enumerate(simplify_clusters):
             print(f"{i} out of {len(simplify_clusters)}")
-            for ang in range(0, 325, 36):
+            for ang in range(0, 360):
                 simplify_clusters_new.append(Analyzer.rotate(copy.deepcopy(sim), ang))
         print("End rotate simplify")
 
@@ -215,8 +223,8 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
         for i, cluster in enumerate(person_clusters):
             print(f"{i} out of {len(person_clusters)}")
             person_clusters_new.append(copy.deepcopy(cluster))
-            for ang in range(9):
-                cluster.rotate(36)
+            for ang in range(359):
+                cluster.rotate(1)
                 person_clusters_new.append(copy.deepcopy(cluster))
         print("End rotate clusters")
     else:
@@ -269,16 +277,17 @@ if __name__ == "__main__":
     # aliza = get_participant("aliza", load_person=False, stroke_length=20)
     # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=40)
 
-    # draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=20)
-    # new_draw = transfer_style2(draw, already_simplified=True)
+    draw = Analyzer.create_drawing(input1, stroke_size=40)
+    # draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=40)
+    transfer_style2(draw)
     # new_draw.plot_picture(show_clusters=False)
     # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
     # new_draw.plot_picture(show_clusters=False)
 
-    base_path = f"aliza_40_10_0.5_stroke_length_20.p"
-    y_path = 'y/y40_10_simplify_1_40_rotation_10.p'
-    x_path = 'x/x40_10_simplify_1_40_rotation_10.p'
-    save_dict_for_nn(base_path, x_path, y_path, rotation=True)
+    # base_path = f"aliza_40_10_0.5_stroke_length_20.p"
+    # y_path = 'y/y40_10_simplify_1_40_rotation_360.p'
+    # x_path = 'x/x40_10_simplify_1_40_rotation_360.p'
+    # save_dict_for_nn(base_path, x_path, y_path, rotation=True)
 
     # aliza = Participant("aliza", stroke_length=20)
     # draws = aliza.get_all_files_of_participant()
