@@ -172,12 +172,12 @@ class Participant:
                 x.extend(stroke.get_feature('x'))
                 y.extend(stroke.get_feature('y'))
 
-            p = simplify_cluster.simplify_cluster(x, y, i)
+            p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y)
             if min_length < len(p) < max_length:
                 if simplify_size:
                     Analyzer.set_size(p, simplify_size)
                 error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
-                if error < 200:
+                if error < 200 and num_of_stroke_in_simplify == 1:
                     indexes.append(i)
                 simplify_clusters.append(p)
 

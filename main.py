@@ -5,7 +5,7 @@ from Participant import Participant
 import numpy as np
 import pickle
 import os
-import nn
+# import nn
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import copy
@@ -41,7 +41,7 @@ def get_simplified_draw(clusters, already_simplified=False):
             p = np.stack((x,y), axis=1)
         # Case which the input should be simplify, like the participants inputs
         else:
-            p = simplify_cluster.simplify_cluster(x, y, i)
+            p = simplify_cluster.simplify_cluster(x, y)[0]
 
         # This is a bug in simplify cluster, p should never be zero
         if len(p) == 0:
@@ -224,7 +224,7 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
         person_clusters_new = person_clusters
 
     print("Start fix the shapes")
-    simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters_new), 20, 2))
+    simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters_new), 40, 2))
     for i, stroke in enumerate(simplify_clusters_new):
         for j, point in enumerate(stroke):
             simplify_clusters_shape[i][j] = point
@@ -266,8 +266,8 @@ if __name__ == "__main__":
     input_fish = "example_input/testdata fish.txt"
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    # aliza = get_participant("aliza", load_person=True, stroke_length=20)
-    # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=20)
+    # aliza = get_participant("aliza", load_person=False, stroke_length=20)
+    # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=40)
 
     # draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=20)
     # new_draw = transfer_style2(draw, already_simplified=True)
@@ -276,29 +276,29 @@ if __name__ == "__main__":
     # new_draw.plot_picture(show_clusters=False)
 
     # base_path = f"aliza_40_10_0.5_stroke_length_20.p"
-    # y_path = 'y/y40_10_rotate.p'
-    # x_path = 'x/x40_10_rotate.p'
+    # y_path = 'y/y40_10_simplify_1_40.p'
+    # x_path = 'x/x40_10_simplify_1_40.p'
     # save_dict_for_nn(base_path, x_path, y_path)
 
     # aliza = Participant("aliza", stroke_length=20)
     # draws = aliza.get_all_files_of_participant()
     # pickle.dump(draws, open("aliza_draws.p", "wb"))
-    aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
+    # aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
     #
     # # draw = Analyzer.create_drawing(input1, stroke_size=20)
     #
-    draw = aliza_draws[0]
-    #
-    clusters = draw.group_strokes(100, 20, 0.5)[1]
+    # draw = aliza_draws[0]
+    # #
+    # clusters = draw.group_strokes(100, 20, 0.5)[1]
     # clusters = draw.group_strokes(100, 20, 0.5, max_num_of_strokes=5, limit_strokes_num=True, fixed_size_of_strokes=True)[1]
 
     # # for cluster in clusters:
     # #     cluster.plot_picture(show_clusters=True, plt_show=False)
     #
-    strokes = []
-    for cluster in clusters:
-        strokes.extend(cluster.get_data())
-    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path(), is_cluster=True)
-    print(rebuilt_draw)
-    rebuilt_draw.plot_picture(show_clusters=True)
+    # strokes = []
+    # for cluster in clusters:
+    #     strokes.extend(cluster.get_data())
+    # rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path(), is_cluster=True)
+    # print(rebuilt_draw)
+    # rebuilt_draw.plot_picture(show_clusters=True)
     # plt.show()

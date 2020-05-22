@@ -102,7 +102,7 @@ def calc_curve(points, dist):
             curveSartpoint = curve[-1]
             result = closest_points(curveSartpoint, points, 2 * dist)
             if len(result) > 0:
-                # curve.reverse()
+                curve.reverse()
                 pt = result[0]
                 continue
             else:
@@ -175,7 +175,7 @@ def get_dist(x, y):
         return 16
 
 
-def simplify_cluster(x, y, i):
+def simplify_cluster(x, y):
     """
 
     :param x:
@@ -183,10 +183,9 @@ def simplify_cluster(x, y, i):
     :return:
     """
     plt.title("cluster")
-    plt.plot(x,y)
+    plt.plot(x, y)
     dist = get_dist(x, y)
     points = np.stack((x, y), axis=1)
-    # points2 = copy.deepcopy(points)
     points = list(points)
     curves = np.array(calc_curve(points, dist))
     points = []
@@ -194,22 +193,6 @@ def simplify_cluster(x, y, i):
         for point in curve:
             points.append(point)
 
-    # points3 = a(points2, 5)
-    # plt.figure(i)
-    #
-    # plt.subplot(131)
-    # plt.plot(x, y, 'o')
-    # plt.title('cluster')
-    #
-    # plt.subplot(132)
-    # plt.plot(np.array(points)[:,0], np.array(points)[:,1], 'o')
-    # plt.title('simplify')
-    #
-    # plt.subplot(133)
-    # plt.plot(np.array(points3)[:, 0], np.array(points3)[:, 1], 'o')
-    # plt.title('simplify new')
-    #
-    # plt.savefig(f'results/simplify/{i}.png')
-    return points
+    return points, len(curves)
 
 

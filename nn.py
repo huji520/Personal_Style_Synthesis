@@ -1,42 +1,48 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, Reshape, Add, Activation
+from tensorflow.keras.layers import Dense, Flatten, Reshape, Add, Activation, LeakyReLU
 from tensorflow.keras import Model
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import os
-import copy
 
-simplify_clusters_shape = pickle.load(open('x/x40_10_rotate.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y40_10_rotate.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40.p', "rb"))
+person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40.p', "rb"))
 
-# for i in range(0, 300):
-#     plt.figure(i)
-#     plt.subplot(121)
-#     plt.title("simplify")
-#     plt.xlim(-100, 100)
-#     plt.ylim(-100, 100)
-#     plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1])
-#
-#     lab = np.array(person_clusters_shape[i])
-#     plt.subplot(122)
-#     plt.title("cluster")
-#     plt.xlim(-100, 100)
-#     plt.ylim(-100, 100)
-#     for j in range(5):
-#         plt.plot(lab[j][:, 0], lab[j][:, 1])
-#     plt.savefig(f'results/input/30_6_rotate_lim/{i}.png')
+for i in range(0, 20):
+    plt.figure(i)
+    plt.subplot(121)
+    plt.title("simplify")
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
+    plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
 
-x_train = simplify_clusters_shape[:-300]
-y_train = person_clusters_shape[:-300]
+    lab = np.array(person_clusters_shape[i])
+    plt.subplot(122)
+    plt.title("cluster")
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
+    for j in range(5):
+        plt.plot(lab[j][:, 0], lab[j][:, 1])
+    plt.savefig(f'results/input/40_10_simplify_1_40/{i}.png')
 
-x_test = simplify_clusters_shape[-300:]
-y_test = person_clusters_shape[-300:]
+
+indexes1 = np.arange(len(simplify_clusters_shape))
+np.random.shuffle(indexes1)
+
+simplify_clusters_shape = simplify_clusters_shape[indexes1]
+person_clusters_shape = person_clusters_shape[indexes1]
+
+x_train = simplify_clusters_shape[:-100]
+y_train = person_clusters_shape[:-100]
+
+x_test = simplify_clusters_shape[-100:]
+y_test = person_clusters_shape[-100:]
 
 x_train = x_train[..., tf.newaxis]
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(1)
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(1)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(16)
+test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(16)
 
 # print(x_train.shape)
 # print(y_train.shape)
@@ -47,27 +53,60 @@ class MyModel(Model):
         super(MyModel, self).__init__()
         self.reshape = Reshape((5, 20, 2))
         self.flatten = Flatten()
-        self.dense1 = Dense(200, activation='relu')
-        self.dense2 = Dense(200, activation='relu')
-        self.dense3 = Dense(1000, activation='relu')
-        self.dense4 = Dense(200, activation='relu')
-        self.dense5 = Dense(200)
+        self.dense1 = Dense(40, activation='relu')
+        self.dense2 = Dense(80, activation='relu')
+        self.dense2 = Dense(160, activation='relu')
+        self.dense3 = Dense(320, activation='relu')
+        self.dense4 = Dense(320, activation='relu')
+        self.dense5 = Dense(640, activation='relu')
+        self.dense6 = Dense(320, activation='relu')
+        self.dense7 = Dense(320, activation='relu')
+        self.dense8 = Dense(200)
+        # self.dense1 = Dense(40)
+        # self.dense2 = Dense(80)
+        # self.dense2 = Dense(160)
+        # self.dense3 = Dense(320)
+        # self.dense4 = Dense(320)
+        # self.dense5 = Dense(640)
+        # self.dense6 = Dense(320)
+        # self.dense7 = Dense(320)
+        # self.dense8 = Dense(200)
+        # self.lrelu = LeakyReLU()
 
-    def decode(self, x):
+    def call(self, x):
         x = self.flatten(x)
         x = self.dense1(x)
         x = self.dense2(x)
         x = self.dense3(x)
         x = self.dense4(x)
         x = self.dense5(x)
+        x = self.dense6(x)
+        x = self.dense7(x)
+        x = self.dense8(x)
         x = self.reshape(x)
         return x
 
-    def call(self, x):
-        return self.decode(x)
+        # x = self.flatten(x)
+        # x = self.dense1(x)
+        # x = self.lrelu(x)
+        # x = self.dense2(x)
+        # x = self.lrelu(x)
+        # x = self.dense3(x)
+        # x = self.lrelu(x)
+        # x = self.dense4(x)
+        # x = self.lrelu(x)
+        # x = self.dense5(x)
+        # x = self.lrelu(x)
+        # x = self.dense6(x)
+        # x = self.lrelu(x)
+        # x = self.dense7(x)
+        # x = self.lrelu(x)
+        # x = self.dense8(x)
+        # x = self.reshape(x)
+        # return x
 
 
-optimizer = tf.keras.optimizers.Adam()
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
 train_loss = tf.keras.metrics.Mean(name='train_loss')
 test_loss = tf.keras.metrics.Mean(name='test_loss')
 
@@ -198,7 +237,7 @@ def loss_object_func(labels, predictions):
 
 def run():
     model = MyModel()
-    epoch = 500
+    epoch = 1000
     graph_train = []
     graph_test = []
     train_model(model, epoch, loss_object_func, graph_train, graph_test)
@@ -222,4 +261,4 @@ def run():
         visualize_train(simplified_train, label_train, model, k, epoch)
 
 
-# run()
+run()
