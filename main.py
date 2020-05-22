@@ -275,10 +275,10 @@ if __name__ == "__main__":
     # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
     # new_draw.plot_picture(show_clusters=False)
 
-    # base_path = f"aliza_40_10_0.5_stroke_length_20.p"
-    # y_path = 'y/y40_10_simplify_1_40.p'
-    # x_path = 'x/x40_10_simplify_1_40.p'
-    # save_dict_for_nn(base_path, x_path, y_path)
+    base_path = f"aliza_40_10_0.5_stroke_length_20.p"
+    y_path = 'y/y40_10_simplify_1_40_rotation_10.p'
+    x_path = 'x/x40_10_simplify_1_40_rotation_10.p'
+    save_dict_for_nn(base_path, x_path, y_path, rotation=True)
 
     # aliza = Participant("aliza", stroke_length=20)
     # draws = aliza.get_all_files_of_participant()

@@ -6,8 +6,8 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 
-simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40_rotation_10.p', "rb"))
+person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40_rotation_10.p', "rb"))
 
 for i in range(0, 20):
     plt.figure(i)
@@ -62,16 +62,6 @@ class MyModel(Model):
         self.dense6 = Dense(320, activation='relu')
         self.dense7 = Dense(320, activation='relu')
         self.dense8 = Dense(200)
-        # self.dense1 = Dense(40)
-        # self.dense2 = Dense(80)
-        # self.dense2 = Dense(160)
-        # self.dense3 = Dense(320)
-        # self.dense4 = Dense(320)
-        # self.dense5 = Dense(640)
-        # self.dense6 = Dense(320)
-        # self.dense7 = Dense(320)
-        # self.dense8 = Dense(200)
-        # self.lrelu = LeakyReLU()
 
     def call(self, x):
         x = self.flatten(x)
@@ -86,27 +76,8 @@ class MyModel(Model):
         x = self.reshape(x)
         return x
 
-        # x = self.flatten(x)
-        # x = self.dense1(x)
-        # x = self.lrelu(x)
-        # x = self.dense2(x)
-        # x = self.lrelu(x)
-        # x = self.dense3(x)
-        # x = self.lrelu(x)
-        # x = self.dense4(x)
-        # x = self.lrelu(x)
-        # x = self.dense5(x)
-        # x = self.lrelu(x)
-        # x = self.dense6(x)
-        # x = self.lrelu(x)
-        # x = self.dense7(x)
-        # x = self.lrelu(x)
-        # x = self.dense8(x)
-        # x = self.reshape(x)
-        # return x
 
-
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
+optimizer = tf.keras.optimizers.Adam()
 train_loss = tf.keras.metrics.Mean(name='train_loss')
 test_loss = tf.keras.metrics.Mean(name='test_loss')
 
@@ -237,7 +208,7 @@ def loss_object_func(labels, predictions):
 
 def run():
     model = MyModel()
-    epoch = 1000
+    epoch = 501
     graph_train = []
     graph_test = []
     train_model(model, epoch, loss_object_func, graph_train, graph_test)
