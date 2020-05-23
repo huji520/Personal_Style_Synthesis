@@ -152,27 +152,27 @@ def get_dist(x, y):
     h = np.max(y) - np.min(y)
     w = np.max(x) - np.min(x)
     if h < 6 and w < 6:
-        return 3
-    if h < 10 and w < 10:
-        return 4
-    if h < 16 and w < 16:
         return 5
-    if h < 22 and w < 22:
-        return 6
-    if h < 28 and w < 28:
-        return 7
-    if h < 34 and w < 34:
+    if h < 10 and w < 10:
         return 8
-    if h < 40 and w < 40:
-        return 9
-    if h < 50 and w < 50:
+    if h < 16 and w < 16:
         return 10
-    if h < 70 and w < 70:
+    if h < 22 and w < 22:
         return 12
-    if h < 100 and w < 100:
+    if h < 28 and w < 28:
         return 14
-    else:
+    if h < 34 and w < 34:
         return 16
+    if h < 40 and w < 40:
+        return 18
+    if h < 50 and w < 50:
+        return 20
+    if h < 70 and w < 70:
+        return 24
+    if h < 100 and w < 100:
+        return 28
+    else:
+        return 32
 
 
 def simplify_cluster(x, y):
@@ -182,8 +182,6 @@ def simplify_cluster(x, y):
     :param y:
     :return:
     """
-    plt.title("cluster")
-    plt.plot(x, y)
     dist = get_dist(x, y)
     points = np.stack((x, y), axis=1)
     points = list(points)

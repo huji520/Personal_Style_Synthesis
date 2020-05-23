@@ -28,6 +28,7 @@ def get_simplified_draw(clusters, already_simplified=False):
     """
     print("Start simplify the given input")
     simplified_clusters = []
+    indexes = []
     for i, draw2 in enumerate(clusters):
         add_orig = True
         print("{0} out of {1}".format(i, len(clusters)))
@@ -41,6 +42,7 @@ def get_simplified_draw(clusters, already_simplified=False):
         if not already_simplified:
             p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y)
             if 3 < len(p) < 1000 and num_of_stroke_in_simplify == 1:
+                indexes.append(i)
                 add_orig = False
 
         if add_orig:
@@ -48,7 +50,7 @@ def get_simplified_draw(clusters, already_simplified=False):
         else:
             simplified_clusters.append(p)
     print("End simplify the given input\n")
-    return simplified_clusters
+    return simplified_clusters, indexes
 
 
 def get_participant(person_name, load_person, stroke_length=None):
@@ -96,7 +98,7 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     """
     participant = get_participant(person_name, load_person, stroke_length)
     clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-    simplified_clusters = get_simplified_draw(clusters, already_simplified=already_simplified)
+    simplified_clusters = get_simplified_draw(clusters, already_simplified=already_simplified)[0]
 
     print("Start matching")
     for i in range(len(clusters)):
@@ -122,36 +124,46 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
 def transfer_style2(draw, already_simplified, simplify_size, euc_dist_threshold, dist_threshold, ang_threshold):
 
     model = nn.MyModel()
-    model.load_weights(f"results/weights/90.tf")
-    # nn.train_model(model=model, epochs=20, loss_object=nn.loss_object_func)
-    clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-    simplified_clusters = get_simplified_draw(clusters, already_simplified)
+    model.load_weights(f"results/weights/200_reg.tf")
+    # nn.train_model(model=model, epochs=200, loss_object=nn.loss_object_func, save=False)
 
+    clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
+    simplified_clusters, indexes = get_simplified_draw(clusters, already_simplified)
+
+    # for sim in simplified_clusters:
+    #     plt.plot(np.array(sim)[:, 0], np.array(sim)[:, 1])
+
+    # for j, sim in enumerate(simplified_clusters):
+    #     if j in indexes:
+    #         plt.plot(np.array(sim)[:,0], np.array(sim)[:,1])
+    #     else:
+    #         clusters[j].plot_picture(plt_show=False)
+
+    # for cluster in clusters:
+    #     for stroke in cluster.get_data():
+    #         plt.plot(stroke.get_feature('x'), stroke.get_feature('y'), color='black')
+    # plt.gca().invert_yaxis()
+    # plt.show()
+    # exit(1)
     new_draw = []
     for i, simplify in enumerate(simplified_clusters):
-        simplify = list(simplify)
-        Analyzer.set_size(simplify, simplify_size)
-        simplify = np.array(simplify)
-        plt.figure(i)
-        plt.subplot(121)
-        plt.plot(simplify[:,0], simplify[:,1])
-        plt.title("simplify")
-        shift_x, shift_y = normalize_center_of_mass(simplify)
-        reconstruction = model(simplify[tf.newaxis, :, :]).numpy().squeeze()
-        reconstruction[:, :, 0] += shift_x
-        reconstruction[:, :, 1] += shift_y
-        plt.subplot(122)
-        for j in range(5):
-            plt.plot(reconstruction[j][:, 0], reconstruction[j][:, 1])
-        plt.title("reconstruction")
-        new_draw.append(reconstruction)
-        plt.savefig(f'{i}.png')
+        if i in indexes:
+            simplify = list(simplify)
+            Analyzer.set_size(simplify, simplify_size)
+            simplify = np.array(simplify)
+            shift_x, shift_y = normalize_center_of_mass(simplify)
+            reconstruction = model(simplify[tf.newaxis, :, :]).numpy().squeeze()
+            reconstruction[:, :, 0] += shift_x
+            reconstruction[:, :, 1] += shift_y
+            new_draw.append(reconstruction)
+        else:
+            clusters[i].plot_picture(plt_show=False)
 
     for cluster in new_draw:
         for stroke in cluster:
             plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1], c='black')
 
-    plt.gca().invert_yaxis()
+    # plt.gca().invert_yaxis()
     plt.show()
 
 
@@ -253,7 +265,7 @@ if __name__ == "__main__":
     draw = Analyzer.create_drawing(input1)
     # draw = Analyzer.create_drawing(input_banana, orig_data=False)
     # draw.plot_picture()
-    transfer_style2(draw, already_simplified=False, simplify_size=40, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)
+    transfer_style2(draw, already_simplified=False, simplify_size=40, euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5)
     # new_draw.plot_picture(show_clusters=False)
     # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
     # new_draw.plot_picture(show_clusters=False)

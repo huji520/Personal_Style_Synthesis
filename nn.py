@@ -6,8 +6,8 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 
-simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40_rotation_360.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40_rotation_360.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40.p', "rb"))
+person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40.p', "rb"))
 
 # for i in range(0, 20):
 #     plt.figure(i)
@@ -33,16 +33,16 @@ np.random.shuffle(indexes1)
 simplify_clusters_shape = simplify_clusters_shape[indexes1]
 person_clusters_shape = person_clusters_shape[indexes1]
 
-x_train = simplify_clusters_shape[:-10000]
-y_train = person_clusters_shape[:-10000]
+x_train = simplify_clusters_shape[:-200]
+y_train = person_clusters_shape[:-200]
 
-x_test = simplify_clusters_shape[-10000:]
-y_test = person_clusters_shape[-10000:]
+x_test = simplify_clusters_shape[-200:]
+y_test = person_clusters_shape[-200:]
 
 x_train = x_train[..., tf.newaxis]
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(32)
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(16)
+test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(16)
 
 print(x_train.shape)
 print(y_train.shape)
@@ -99,7 +99,7 @@ def test_step(model, images, labels, loss_object):
     test_loss(loss)
 
 
-def train_model(model, epochs, loss_object, graph_train=None, graph_test=None):
+def train_model(model, epochs, loss_object, graph_train=None, graph_test=None, save=True):
 
     for epoch in range(epochs):
         for images, labels in train_ds:
@@ -108,12 +108,13 @@ def train_model(model, epochs, loss_object, graph_train=None, graph_test=None):
         for images_test, labels_test in test_ds:
             test_step(model, images_test, labels_test, loss_object)
         print(f'Epoch {epoch + 1}, Train loss: {train_loss.result()}, Test loss: {test_loss.result()}\n -- ')
-        if (epoch+1) % 10 == 0:
-            model.save_weights(f"results/weights/{epoch+1}.h5")
-            for k in range(30):
-                simplified_test = x_test[k]
-                label_test = y_test[k]
-                visualize_reconstruction(simplified_test, label_test, model, k, epoch)
+        if save:
+            if (epoch+1) % 10 == 0:
+                model.save_weights(f"results/weights/{epoch+1}_reg.tf")
+                for k in range(30):
+                    simplified_test = x_test[k]
+                    label_test = y_test[k]
+                    visualize_reconstruction(simplified_test, label_test, model, k, epoch)
 
         if graph_train:
             graph_train.append(train_loss.result())
@@ -216,9 +217,9 @@ def loss_object_func(labels, predictions):
 
 def run(load=0):
     model = MyModel()
-    epoch = 100
+    epoch = 200
     if load > 0:
-        model.load_weights(f"results/weights/{load}.h5")
+        model.load_weights(f"results/weights/{load}.tf")
 
     graph_train = []
     graph_test = []
