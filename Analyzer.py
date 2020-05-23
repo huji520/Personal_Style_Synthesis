@@ -9,8 +9,6 @@ from skimage.transform import resize
 import Constants
 from Stroke import Stroke
 from Drawing import Drawing
-from sklearn.neighbors import NearestNeighbors
-import networkx as nx
 
 
 class Analyzer:
@@ -333,7 +331,6 @@ class Analyzer:
     @staticmethod
     def insert(points, idx):
 
-        # points = np.array(points)
         x = (points[idx - 1][0] + points[idx][0]) / 2
         y = (points[idx - 1][1] + points[idx][1]) / 2
         points.insert(idx, [x, y])

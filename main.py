@@ -19,7 +19,7 @@ def normalize_center_of_mass(points):
     return shift_x, shift_y
 
 
-def get_simplified_draw(clusters, already_simplified=False, simplified_size=None):
+def get_simplified_draw(clusters, already_simplified=False):
     """
     Get array of clusters, making every cluster to be an array of 2D points, then simplify this array (if needed).
     :param clusters: Array of clusters (which are Drawing objects)
@@ -28,30 +28,25 @@ def get_simplified_draw(clusters, already_simplified=False, simplified_size=None
     """
     print("Start simplify the given input")
     simplified_clusters = []
-    for i, draw in enumerate(clusters):
+    for i, draw2 in enumerate(clusters):
+        add_orig = True
         print("{0} out of {1}".format(i, len(clusters)))
         x = []
         y = []
-        for stroke in draw.get_data():
+        for stroke in draw2.get_data():
             x.extend(stroke.get_feature('x'))
             y.extend(stroke.get_feature('y'))
 
-        # Case of simplify input, like banana or fish
-        if already_simplified:
-            p = np.stack((x,y), axis=1)
         # Case which the input should be simplify, like the participants inputs
-        else:
-            p = simplify_cluster.simplify_cluster(x, y)[0]
+        if not already_simplified:
+            p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y)
+            if 3 < len(p) < 1000 and num_of_stroke_in_simplify == 1:
+                add_orig = False
 
-        # This is a bug in simplify cluster, p should never be zero
-        if len(p) == 0:
+        if add_orig:
             simplified_clusters.append(np.stack((x,y), axis=1))
-            continue
-
-        if simplified_size:
-            Analyzer.set_size(p, simplified_size)
-
-        simplified_clusters.append(p)
+        else:
+            simplified_clusters.append(p)
     print("End simplify the given input\n")
     return simplified_clusters
 
@@ -84,10 +79,10 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
                    min_length=3, max_length=1000, stroke_length=None, simplify_size=None):
     """
     Get a drawing and person name, and generate a new draw with the style of the given person name.
-    :param simplify_size:
-    :param stroke_length:
-    :param max_length:
-    :param min_length:
+    :param simplify_size: length of the simplify strokes (keys of the dict)
+    :param stroke_length: length of the strokes of the participant that will be in the clusters
+    :param max_length: max length of stroke after simplify to add the dict
+    :param min_length: min length of stroke after simplify to add the dict
     :param matching_threshold: If the error of the best match if bigger than that threshold, do not change the cluster
     :param ang_threshold: argument for group_strokes
     :param dist_threshold: argument for group_strokes
@@ -124,97 +119,72 @@ def transfer_style(draw, person_name, load_person=False, load_dict=True, already
     return Drawing(strokes, clusters[0].get_pic_path())
 
 
-def transfer_style2(draw, already_simplified=False, euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5):
-    """
-    Get a drawing and person name, and generate a new draw with the style of the given person name.
-    :param simplify_size:
-    :param stroke_length:
-    :param max_length:
-    :param min_length:
-    :param matching_threshold: If the error of the best match if bigger than that threshold, do not change the cluster
-    :param ang_threshold: argument for group_strokes
-    :param dist_threshold: argument for group_strokes
-    :param euc_dist_threshold: argument for group_strokes
-    :param already_simplified: True if the given drawing is already simplify
-    :param load_dict: Use pickle if True, else create a new one
-    :param load_person: Use pickle if True, else create a new one
-    :param draw: a draw to be transfer
-    :param person_name: the name of the person with the wanted style
-    :return: a draw object with the wanted style
-    """
-    model = nn.MyModel()
-    model.load_weights(f"results/weights/30.tf")
-    arr = []
-    if already_simplified:
-        simplified_clusters = []
-        for stroke in draw.get_data():
-            if not stroke.is_pause():
-                simplified_clusters.append(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
-    else:
-        clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-        simplified_clusters = get_simplified_draw(clusters, already_simplified, simplified_size=40)
+def transfer_style2(draw, already_simplified, simplify_size, euc_dist_threshold, dist_threshold, ang_threshold):
 
-    for simplify in simplified_clusters:
-        shift_x, shift_y = normalize_center_of_mass(np.array(simplify))
+    model = nn.MyModel()
+    model.load_weights(f"results/weights/90.tf")
+    # nn.train_model(model=model, epochs=20, loss_object=nn.loss_object_func)
+    clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
+    simplified_clusters = get_simplified_draw(clusters, already_simplified)
+
+    new_draw = []
+    for i, simplify in enumerate(simplified_clusters):
+        simplify = list(simplify)
+        Analyzer.set_size(simplify, simplify_size)
+        simplify = np.array(simplify)
+        plt.figure(i)
+        plt.subplot(121)
+        plt.plot(simplify[:,0], simplify[:,1])
+        plt.title("simplify")
+        shift_x, shift_y = normalize_center_of_mass(simplify)
         reconstruction = model(simplify[tf.newaxis, :, :]).numpy().squeeze()
         reconstruction[:, :, 0] += shift_x
         reconstruction[:, :, 1] += shift_y
-        arr.extend(reconstruction)
+        plt.subplot(122)
+        for j in range(5):
+            plt.plot(reconstruction[j][:, 0], reconstruction[j][:, 1])
+        plt.title("reconstruction")
+        new_draw.append(reconstruction)
+        plt.savefig(f'{i}.png')
 
-    for stroke in arr:
-        plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1], color='black')
+    for cluster in new_draw:
+        for stroke in cluster:
+            plt.plot(np.array(stroke)[:,0], np.array(stroke)[:,1], c='black')
 
     plt.gca().invert_yaxis()
     plt.show()
 
-    # return Drawing(arr, draw.get_pic_path())
 
-# def plot_clusters(draw, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5):
-#     """
-#     Plot the input draw after clustering
-#     :param ang_threshold: argument for group_strokes
-#     :param dist_threshold: argument for group_strokes
-#     :param euc_dist_threshold: argument for group_strokes
-#     :param draw: Drawing object
-#     """
-#     clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
-#     strokes = []
-#     for cluster in clusters:
-#         strokes.extend(cluster.get_data())
-#     rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
-#     rebuilt_draw.plot_picture(show_clusters=True)
-
-
-def l2(p1, p2):
+def plot_clusters(draw, euc_dist_threshold, dist_threshold, ang_threshold):
     """
-    calc l2 metric between two points
-    :param p1: 2D point [x,y]
-    :param p2: 2D point [x,y]
-    :return: l2 metric between the two given points
+    Plot the input draw after clustering
+    :param ang_threshold: argument for group_strokes
+    :param dist_threshold: argument for group_strokes
+    :param euc_dist_threshold: argument for group_strokes
+    :param draw: Drawing object
     """
-    return np.linalg.norm(np.array(p1) - np.array(p2))
+    clusters = draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold)[1]
+    strokes = []
+    for cluster in clusters:
+        strokes.extend(cluster.get_data())
+    rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
+    rebuilt_draw.plot_picture(show_clusters=True)
 
 
-def l2_stroke(s1, s2):
-    error = 0
-    for i in range(len(s1)):
-        for j in range(len(s1[0])):
-            error += l2(s1[i][j], s2[i][j])
-    return error
-
-
-def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, put_zeros=False):
+def save_dict_for_nn(base_path, x_output_path, y_output_path, units=0, put_zeros=False):
     simplify_path = os.path.join("pickle", "simplify", base_path)
     person_clusters_path = os.path.join("pickle", "clusters", base_path)
     simplify_clusters = pickle.load(open(simplify_path, "rb"))
     person_clusters = pickle.load(open(person_clusters_path, "rb"))
 
-    if rotation:
+    # Rotation
+    if units > 0:
         print("Start rotate simplify")
         simplify_clusters_new = []
+        step = np.ceil(360/units)
         for i, sim in enumerate(simplify_clusters):
             print(f"{i} out of {len(simplify_clusters)}")
-            for ang in range(0, 360):
+            for ang in range(0, 360, step):
                 simplify_clusters_new.append(Analyzer.rotate(copy.deepcopy(sim), ang))
         print("End rotate simplify")
 
@@ -223,14 +193,15 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
         for i, cluster in enumerate(person_clusters):
             print(f"{i} out of {len(person_clusters)}")
             person_clusters_new.append(copy.deepcopy(cluster))
-            for ang in range(359):
-                cluster.rotate(1)
+            for ang in range(units-1):
+                cluster.rotate(step)
                 person_clusters_new.append(copy.deepcopy(cluster))
         print("End rotate clusters")
     else:
         simplify_clusters_new = simplify_clusters
         person_clusters_new = person_clusters
 
+    # Fix shapes for nn
     print("Start fix the shapes")
     simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters_new), 40, 2))
     for i, stroke in enumerate(simplify_clusters_new):
@@ -245,6 +216,7 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
                 person_clusters_shape[i][j][k] = point
     print("End fix the shapes")
 
+    # normalize
     print("Start normalize (center of mass at (0,0)")
     # Put center of mass at (0,0)
     for sim in simplify_clusters_shape:
@@ -256,6 +228,7 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, rotation=False, pu
         per[:, :, 1] -= per[:, :, 1].mean()
     print("End normalize (center of mass at (0,0)")
 
+    # Put zeros instead of duplicates
     if put_zeros:
         print("Start pushing zeros instead of duplicates")
         for cluster in person_clusters_shape:
@@ -277,9 +250,10 @@ if __name__ == "__main__":
     # aliza = get_participant("aliza", load_person=False, stroke_length=20)
     # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=40)
 
-    draw = Analyzer.create_drawing(input1, stroke_size=40)
-    # draw = Analyzer.create_drawing(input_banana, orig_data=False, stroke_size=40)
-    transfer_style2(draw)
+    draw = Analyzer.create_drawing(input1)
+    # draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    # draw.plot_picture()
+    transfer_style2(draw, already_simplified=False, simplify_size=40, euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5)
     # new_draw.plot_picture(show_clusters=False)
     # new_draw = transfer_style(draw, "aliza", load_person=False, load_dict=False, already_simplified=True, stroke_length=20, simplify_size=20)
     # new_draw.plot_picture(show_clusters=False)
@@ -293,21 +267,5 @@ if __name__ == "__main__":
     # draws = aliza.get_all_files_of_participant()
     # pickle.dump(draws, open("aliza_draws.p", "wb"))
     # aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
-    #
-    # # draw = Analyzer.create_drawing(input1, stroke_size=20)
-    #
-    # draw = aliza_draws[0]
-    # #
-    # clusters = draw.group_strokes(100, 20, 0.5)[1]
-    # clusters = draw.group_strokes(100, 20, 0.5, max_num_of_strokes=5, limit_strokes_num=True, fixed_size_of_strokes=True)[1]
 
-    # # for cluster in clusters:
-    # #     cluster.plot_picture(show_clusters=True, plt_show=False)
-    #
-    # strokes = []
-    # for cluster in clusters:
-    #     strokes.extend(cluster.get_data())
-    # rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path(), is_cluster=True)
-    # print(rebuilt_draw)
-    # rebuilt_draw.plot_picture(show_clusters=True)
-    # plt.show()
+

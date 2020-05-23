@@ -99,7 +99,7 @@ def test_step(model, images, labels, loss_object):
     test_loss(loss)
 
 
-def train_model(model, epochs, loss_object, graph_train, graph_test):
+def train_model(model, epochs, loss_object, graph_train=None, graph_test=None):
 
     for epoch in range(epochs):
         for images, labels in train_ds:
@@ -108,15 +108,17 @@ def train_model(model, epochs, loss_object, graph_train, graph_test):
         for images_test, labels_test in test_ds:
             test_step(model, images_test, labels_test, loss_object)
         print(f'Epoch {epoch + 1}, Train loss: {train_loss.result()}, Test loss: {test_loss.result()}\n -- ')
-        if epoch % 10 == 0 and epoch != 0:
-            model.save_weights(f"results/weights/{epoch}.tf")
+        if (epoch+1) % 10 == 0:
+            model.save_weights(f"results/weights/{epoch+1}.h5")
             for k in range(30):
                 simplified_test = x_test[k]
                 label_test = y_test[k]
                 visualize_reconstruction(simplified_test, label_test, model, k, epoch)
 
-        graph_train.append(train_loss.result())
-        graph_test.append(test_loss.result())
+        if graph_train:
+            graph_train.append(train_loss.result())
+        if graph_test:
+            graph_test.append(test_loss.result())
         train_loss.reset_states()
         test_loss.reset_states()
 
@@ -216,7 +218,7 @@ def run(load=0):
     model = MyModel()
     epoch = 100
     if load > 0:
-        model.load_weights(f"results/weights/{load}.tf")
+        model.load_weights(f"results/weights/{load}.h5")
 
     graph_train = []
     graph_test = []
@@ -233,13 +235,13 @@ def run(load=0):
         os.mkdir("results")
     plt.savefig(f'results/{epoch}.png')
     for k in range(50):
-        # simplified_test = x_test[k]
-        # label_test = y_test[k]
-        # visualize_reconstruction(simplified_test, label_test, model, k, epoch)
+        simplified_test = x_test[k]
+        label_test = y_test[k]
+        visualize_reconstruction(simplified_test, label_test, model, k, epoch)
 
-        simplified_train = x_train[k]
-        label_train = y_train[k]
-        visualize_train(simplified_train, label_train, model, k, epoch)
+        # simplified_train = x_train[k]
+        # label_train = y_train[k]
+        # visualize_train(simplified_train, label_train, model, k, epoch)
 
 
 # run()

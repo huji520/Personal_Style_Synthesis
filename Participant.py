@@ -1,5 +1,4 @@
 from Analyzer import Analyzer
-from Drawing import Drawing
 import simplify_cluster
 import os
 import numpy as np
