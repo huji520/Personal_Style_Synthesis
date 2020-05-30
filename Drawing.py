@@ -27,8 +27,6 @@ class Drawing:
                     if not stroke.is_pause():
                         stroke.set_size(int(stroke_size * stroke.size()))
 
-
-
     def get_pic_path(self):
         """
         :return: path to the drawing picture
@@ -69,6 +67,20 @@ class Drawing:
         :return: average of geometric length of a single stroke
         """
         return self.total_length()[0] / float(self.size())
+
+    def calc_center_of_mass(self):
+        x = 0
+        y = 0
+        number_of_points_x = 0
+        number_of_points_y = 0
+        for stroke in self._data:
+            if not stroke.is_pause():
+                x += np.sum(stroke.get_feature('x'))
+                y += np.sum(stroke.get_feature('y'))
+                number_of_points_x += stroke.get_feature('x').size
+                number_of_points_y += stroke.get_feature('y').size
+
+        return x/number_of_points_x, y/number_of_points_y
 
     def length_std(self):
         """
@@ -341,14 +353,14 @@ class Drawing:
             data[0]._group = counter + 1
             for stroke in data[1:]:
                 if (self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
-                     np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold
-                     or
-                     (self.strokes_distance(np.array(data[i].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
-                     dist_threshold)
-                     and
-                     self.strokes_angle_difference(np.array(data[i].get_data()[1:3]).T,
-                     np.array(stroke.get_data()[1:3]).T, self.strokes_distance(np.array(data[i].get_data()[1:3]).T,
-                     np.array(stroke.get_data()[1:3]).T, dist_threshold)) <= ang_threshold)):
+                     np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold):
+                     # or
+                     # (self.strokes_distance(np.array(data[i].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
+                     # dist_threshold)
+                     # and
+                     # self.strokes_angle_difference(np.array(data[i].get_data()[1:3]).T,
+                     # np.array(stroke.get_data()[1:3]).T, self.strokes_distance(np.array(data[i].get_data()[1:3]).T,
+                     # np.array(stroke.get_data()[1:3]).T, dist_threshold)) <= ang_threshold)):
                     stroke._group = counter + 1
                     group.append(stroke)
                     i = i + 1

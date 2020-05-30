@@ -69,6 +69,10 @@ class Stroke:
             return self.length() / self.time()
         elif feature == "pressure":
             return self.get_feature("pressure").mean()
+        elif feature == "x":
+            return self.get_feature("x").mean()
+        elif feature == "y":
+            return self.get_feature("y").mean()
         elif feature == "tiltX":
             return self.get_feature("tiltX").mean()
         elif feature == "tiltY":

@@ -6,25 +6,25 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 
-simplify_clusters_shape = pickle.load(open('x/x40_10_simplify_1_40.p', "rb"))
-person_clusters_shape = pickle.load(open('y/y40_10_simplify_1_40.p', "rb"))
+simplify_clusters_shape = pickle.load(open('x/40_10_0.5_new.p', "rb"))
+person_clusters_shape = pickle.load(open('y/40_10_0.5_new.p', "rb"))
 
-# for i in range(0, 20):
-#     plt.figure(i)
-#     plt.subplot(121)
-#     plt.title("simplify")
-#     plt.xlim(-100, 100)
-#     plt.ylim(-100, 100)
-#     plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
-#
-#     lab = np.array(person_clusters_shape[i])
-#     plt.subplot(122)
-#     plt.title("cluster")
-#     plt.xlim(-100, 100)
-#     plt.ylim(-100, 100)
-#     for j in range(5):
-#         plt.plot(lab[j][:, 0], lab[j][:, 1])
-#     plt.savefig(f'results/input/40_10_simplify_1_40/{i}.png')
+for i in range(0, 20):
+    plt.figure(i)
+    plt.subplot(121)
+    plt.title("simplify")
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
+    plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
+
+    lab = np.array(person_clusters_shape[i])
+    plt.subplot(122)
+    plt.title("cluster")
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
+    for j in range(5):
+        plt.plot(lab[j][:, 0], lab[j][:, 1])
+    plt.savefig(f'results/input/test/{i}.png')
 
 
 indexes1 = np.arange(len(simplify_clusters_shape))
@@ -33,15 +33,15 @@ np.random.shuffle(indexes1)
 simplify_clusters_shape = simplify_clusters_shape[indexes1]
 person_clusters_shape = person_clusters_shape[indexes1]
 
-x_train = simplify_clusters_shape[:-200]
-y_train = person_clusters_shape[:-200]
+x_train = simplify_clusters_shape[:-100]
+y_train = person_clusters_shape[:-100]
 
-x_test = simplify_clusters_shape[-200:]
-y_test = person_clusters_shape[-200:]
+x_test = simplify_clusters_shape[-100:]
+y_test = person_clusters_shape[-100:]
 
 x_train = x_train[..., tf.newaxis]
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(1000).batch(16)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(16)
 test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(16)
 
 print(x_train.shape)
@@ -51,28 +51,24 @@ print(y_train.shape)
 class MyModel(Model):
     def __init__(self):
         super(MyModel, self).__init__()
-        self.reshape = Reshape((5, 20, 2))
+        self.reshape = Reshape((40, 30, 2))
         self.flatten = Flatten()
-        self.dense1 = Dense(40, activation='relu')
-        self.dense2 = Dense(80, activation='relu')
-        self.dense2 = Dense(160, activation='relu')
-        self.dense3 = Dense(320, activation='relu')
-        self.dense4 = Dense(320, activation='relu')
-        self.dense5 = Dense(640, activation='relu')
-        self.dense6 = Dense(320, activation='relu')
-        self.dense7 = Dense(320, activation='relu')
-        self.dense8 = Dense(200)
+        self.dense1 = Dense(60, activation='relu')
+        self.dense2 = Dense(120, activation='relu')
+        self.dense2 = Dense(240, activation='relu')
+        self.dense3 = Dense(480, activation='relu')
+        # self.dense4 = Dense(960, activation='relu')
+        # self.dense5 = Dense(1920, activation='relu')
+        self.dense6 = Dense(2400)
 
     def call(self, x):
         x = self.flatten(x)
         x = self.dense1(x)
         x = self.dense2(x)
         x = self.dense3(x)
-        x = self.dense4(x)
-        x = self.dense5(x)
+        # x = self.dense4(x)
+        # x = self.dense5(x)
         x = self.dense6(x)
-        x = self.dense7(x)
-        x = self.dense8(x)
         x = self.reshape(x)
         return x
 
@@ -212,7 +208,62 @@ def loss_object_func(labels, predictions):
     # tf.print("loss", tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels[:1, :1, :3, :] - predictions[:1, :1, :3, :]), axis=3))),
     #          output_stream=sys.stdout)
 
-    return tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels - predictions), axis=3)) / 100) / 32
+    i = 0
+    j = 0.0
+
+    for stroke in labels[0]:
+        if tf.math.count_nonzero(stroke) == 0:
+            break
+        i += 1
+        j += 1
+
+    a = tf.keras.backend.sum(
+        tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:i] - predictions[0][:i]), axis=2))) / (j * 30)
+
+    k = 0
+    for label in labels:
+        if k == 0:
+            k += 1
+            continue
+        i = 0
+        j = 0.0
+        for stroke in label:
+            if tf.math.count_nonzero(stroke) == 0:
+                break
+            i += 1
+            j += 1
+
+        a += tf.keras.backend.sum(
+            tf.sqrt(tf.keras.backend.sum(tf.square(labels[k][:i] - predictions[k][:i]), axis=2))) / (j*30)
+        k += 1
+
+    return a / 16
+    # tf.print("predictions", predictions[0][:1,:3,:])
+    # tf.print("labels", labels[0][:1,:3,:])
+    # tf.print("diff", labels[0][:1, :3, :] - predictions[0][:1, :3, :])
+    # tf.print("square", tf.square(labels[0][:1, :3, :] - predictions[0][:1, :3, :]))
+    # tf.print("sum+square", tf.keras.backend.sum(tf.square(labels[0][:1, :3, :] - predictions[0][:1, :3, :]), axis=2))
+    # tf.print("sum+square+sqrt",
+    #          tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:1, :3, :] - predictions[0][:1, :3, :]), axis=2)))
+    # tf.print("loss", tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:1, :3, :] - predictions[0][:1, :3, :]), axis=2))))
+
+    # tf.print(tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:i] - predictions[0][:i]), axis=2)) / (j*30)))
+
+    # a = tf.keras.backend.sum(
+    #     tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:i] - predictions[0][:i]), axis=2)) / (i*30))
+
+    # b = tf.keras.backend.sum(
+    #     tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:i] - predictions[0][:i]), axis=2)) / (i*30))
+    #
+    # c = a+b
+
+    # return a
+
+    # return tf.keras.backend.sum(
+    #     tf.sqrt(tf.keras.backend.sum(tf.square(labels[0][:i] - predictions[0][:i]), axis=3)) / (i*30))
+
+
+    # return tf.keras.backend.sum(tf.sqrt(tf.keras.backend.sum(tf.square(labels - predictions), axis=3)) / 1200) / 32
 
 
 def run(load=0):
@@ -245,4 +296,4 @@ def run(load=0):
         # visualize_train(simplified_train, label_train, model, k, epoch)
 
 
-# run()
+run()

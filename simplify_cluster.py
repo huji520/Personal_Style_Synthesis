@@ -151,28 +151,55 @@ def get_dist(x, y):
     y = np.array(y)
     h = np.max(y) - np.min(y)
     w = np.max(x) - np.min(x)
-    if h < 6 and w < 6:
-        return 5
-    if h < 10 and w < 10:
-        return 8
-    if h < 16 and w < 16:
-        return 10
-    if h < 22 and w < 22:
-        return 12
-    if h < 28 and w < 28:
-        return 14
-    if h < 34 and w < 34:
-        return 16
-    if h < 40 and w < 40:
-        return 18
-    if h < 50 and w < 50:
-        return 20
-    if h < 70 and w < 70:
-        return 24
-    if h < 100 and w < 100:
-        return 28
-    else:
+
+    if h > 200 or w > 200:
+        return 40
+    if h > 150 or w > 150:
+        return 36
+    if h > 100 or w > 100:
         return 32
+    if h > 70 or w > 70:
+        return 28
+    if h > 50 or w > 50:
+        return 24
+    if h > 40 or w > 40:
+        return 20
+    if h > 34 or w > 34:
+        return 16
+    if h > 28 or w > 28:
+        return 14
+    if h > 22 or w > 22:
+        return 12
+    if h > 16 or w > 16:
+        return 10
+    if h > 10 or w > 10:
+        return 8
+    else:
+        return 5
+
+
+    # if h < 6 and w < 6:
+    #     return 5
+    # if h < 10 and w < 10:
+    #     return 8
+    # if h < 16 and w < 16:
+    #     return 10
+    # if h < 22 and w < 22:
+    #     return 12
+    # if h < 28 and w < 28:
+    #     return 14
+    # if h < 34 and w < 34:
+    #     return 16
+    # if h < 40 and w < 40:
+    #     return 18
+    # if h < 50 and w < 50:
+    #     return 20
+    # if h < 70 and w < 70:
+    #     return 24
+    # if h < 100 and w < 100:
+    #     return 28
+    # else:
+    #     return 32
 
 
 def simplify_cluster(x, y):
@@ -187,10 +214,15 @@ def simplify_cluster(x, y):
     points = list(points)
     curves = np.array(calc_curve(points, dist))
     points = []
-    for curve in curves:
-        for point in curve:
-            points.append(point)
+    max_length = 0
+    idx = 0
+    for i, curve in enumerate(curves):
+        if len(curve) > max_length:
+            max_length = len(curve)
+            idx = i
 
+    for point in curves[idx]:
+        points.append(point)
     return points, len(curves)
 
 

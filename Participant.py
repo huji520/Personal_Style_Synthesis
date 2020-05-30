@@ -155,8 +155,8 @@ class Participant:
         for j, draw in enumerate(self.get_data()):
             print(f"{j} out of {len(self.get_data())}")
             clusters.extend(draw.group_strokes(euc_dist_threshold, dist_threshold, ang_threshold,
-                                               max_num_of_strokes=5,
-                                               limit_strokes_num=True, fixed_size_of_strokes=True)[1])
+                                               max_num_of_strokes=0,
+                                               limit_strokes_num=False, fixed_size_of_strokes=False)[1])
         self.clusters = clusters
         print("End clustering all participant draws\n")
 
@@ -175,8 +175,8 @@ class Participant:
             if min_length < len(p) < max_length:
                 if simplify_size:
                     Analyzer.set_size(p, simplify_size)
-                error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
-                if error < 200 and num_of_stroke_in_simplify == 1:
+                # error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
+                if num_of_stroke_in_simplify == 1:
                     indexes.append(i)
                 simplify_clusters.append(p)
 
