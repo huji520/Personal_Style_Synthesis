@@ -187,7 +187,7 @@ def update_dict(draw, euc_dist_threshold, dist_threshold, ang_threshold):
             y.extend(stroke.get_feature('y'))
 
         p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y)
-        if nearest_neighbor.calc_error(np.stack((x, y), axis=1), p) < 10:
+        if nearest_neighbor.calc_error(np.stack((x, y), axis=1), p) < 15:
             simplify_dict.append(p)
             clusters_dict.append(cluster)
 
@@ -244,7 +244,7 @@ def plot_clusters(draw, euc_dist_threshold, dist_threshold, ang_threshold):
             x.extend(stroke.get_feature('x'))
             y.extend(stroke.get_feature('y'))
 
-        p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y)
+        p, num_of_stroke_in_simplify = simplify_cluster.simplify_cluster(x, y, i)
         p = np.array(p)
         plt.figure(i)
         plt.subplot(121)
@@ -266,7 +266,7 @@ def plot_clusters(draw, euc_dist_threshold, dist_threshold, ang_threshold):
         print(f"{i}: {nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)}")
     #     strokes.extend(cluster.get_data())
     # rebuilt_draw = Drawing(strokes, clusters[0].get_pic_path())
-    # rebuilt_draw.plot_picture(show_clusters=True)
+    # rebuilt_draw.plot_picture(show_clusters=True, save=True)
 
 
 def save_dict_for_nn(base_path, x_output_path, y_output_path, units=0, put_zeros=False):
@@ -339,6 +339,44 @@ def save_dict_for_nn(base_path, x_output_path, y_output_path, units=0, put_zeros
     pickle.dump(person_clusters_shape, open(y_output_path, "wb"))
 
 
+def normalize2(base_path, cutoff=200):
+    simplify_path = os.path.join("pickle", "simplify", base_path)
+    person_clusters_path = os.path.join("pickle", "clusters", base_path)
+    simplify_clusters_train = pickle.load(open(simplify_path, "rb"))[:-cutoff]
+    person_clusters_train = pickle.load(open(person_clusters_path, "rb"))[:-cutoff]
+    simplify_clusters_test = pickle.load(open(simplify_path, "rb"))[-cutoff:]
+    person_clusters_test = pickle.load(open(person_clusters_path, "rb"))[-cutoff:]
+
+    # normalize
+    print("Start normalize (center of mass at (0,0)")
+    # Put center of mass at (0,0)
+    for i, sim in enumerate(simplify_clusters_train):
+        sim = np.array(sim)
+        sim[:, 0] -= sim[:, 0].mean()
+        sim[:, 1] -= sim[:, 1].mean()
+        simplify_clusters_train[i] = sim
+
+    for i, sim in enumerate(simplify_clusters_test):
+        sim = np.array(sim)
+        sim[:, 0] -= sim[:, 0].mean()
+        sim[:, 1] -= sim[:, 1].mean()
+        simplify_clusters_test[i] = sim
+
+    for i, cluster in enumerate(person_clusters_train):
+        mean_x, mean_y = cluster.calc_center_of_mass()
+        cluster.shift_x(-mean_x)
+        cluster.shift_y(-mean_y)
+
+    for i, cluster in enumerate(person_clusters_test):
+        mean_x, mean_y = cluster.calc_center_of_mass()
+        cluster.shift_x(-mean_x)
+        cluster.shift_y(-mean_y)
+
+    print("End normalize (center of mass at (0,0)")
+
+    return simplify_clusters_train, person_clusters_train, simplify_clusters_test, person_clusters_test
+
+
 def normalize(base_path):
     simplify_path = os.path.join("pickle", "simplify", base_path)
     person_clusters_path = os.path.join("pickle", "clusters", base_path)
@@ -364,23 +402,133 @@ def normalize(base_path):
     return simplify_clusters, person_clusters
 
 
-def save_for_nn2(base_path, x_output_path, y_output_path, simplify_stroke_size, cluster_stroke_size):
+def save_for_nn2_2(base_path, x_train_path, y_train_path_0, y_train_path_1, x_test_path, y_test_path, simplify_stroke_size, cluster_stroke_size, units):
+    simplify_clusters_train, person_clusters_train, simplify_clusters_test, person_clusters_test = normalize2(base_path, 200)
+
+    cluster_size = 0
+    for clusters in [person_clusters_train, person_clusters_test]:
+        for cluster in clusters:
+            cluster_size = max(len(cluster.get_data()), cluster_size)
+
+    # Rotation
+    if units > 0:
+        print("Start rotate simplify train")
+        simplify_clusters_train_new = []
+        step = int(np.ceil(360 / units))
+        print(step)
+        for i, sim in enumerate(simplify_clusters_train):
+            print(f"{i} out of {len(simplify_clusters_train)}")
+            for ang in range(0, 360, step):
+                simplify_clusters_train_new.append(Analyzer.rotate(copy.deepcopy(sim), ang))
+        print("End rotate simplify train")
+
+        print("Start rotate clusters train")
+        person_clusters_train_new = []
+        for i, cluster2 in enumerate(person_clusters_train):
+            print(f"{i} out of {len(person_clusters_train)}")
+            person_clusters_train_new.append(copy.deepcopy(cluster2))
+            for ang in range(units - 1):
+                cluster2.rotate(step)
+                person_clusters_train_new.append(copy.deepcopy(cluster2))
+        print("End rotate clusters")
+
+    else:
+        simplify_clusters_train_new = simplify_clusters_train
+        person_clusters_train_new = person_clusters_train
+
+    simplify_clusters_test_new = simplify_clusters_test
+    person_clusters_test_new = person_clusters_test
+
+    # Fix shapes for nn
+    print("Start fix the shapes")
+    simplify_clusters_train_shape = np.zeros(shape=(len(simplify_clusters_train_new), simplify_stroke_size, 2))
+    for i, stroke in enumerate(simplify_clusters_train_new):
+        stroke = list(stroke)
+        Analyzer.set_size(stroke, simplify_stroke_size)
+        simplify_clusters_train_shape[i] = stroke
+
+    simplify_clusters_test_shape = np.zeros(shape=(len(simplify_clusters_test_new), simplify_stroke_size, 2))
+    for i, stroke in enumerate(simplify_clusters_test_new):
+        stroke = list(stroke)
+        Analyzer.set_size(stroke, simplify_stroke_size)
+        simplify_clusters_test_shape[i] = stroke
+
+    person_clusters_train_shape = np.zeros(shape=(len(person_clusters_train_new), cluster_size, cluster_stroke_size, 2))
+    for i, cluster in enumerate(person_clusters_train_new):
+        for j, stroke in enumerate(cluster.get_data()):
+            pairs = list(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
+            Analyzer.set_size(pairs, cluster_stroke_size)
+            person_clusters_train_shape[i][j] = pairs
+
+    person_clusters_test_shape = np.zeros(shape=(len(person_clusters_test_new), cluster_size, cluster_stroke_size, 2))
+    for i, cluster in enumerate(person_clusters_test_new):
+        for j, stroke in enumerate(cluster.get_data()):
+            pairs = list(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
+            Analyzer.set_size(pairs, cluster_stroke_size)
+            person_clusters_test_shape[i][j] = pairs
+    print("End fix the shapes")
+
+    pickle.dump(simplify_clusters_train_shape, open(x_train_path, "wb"))
+    pickle.dump(simplify_clusters_test_shape, open(x_test_path, "wb"))
+    pickle.dump(person_clusters_train_shape[:350000], open(y_train_path_0, "wb"))
+    pickle.dump(person_clusters_train_shape[350000:], open(y_train_path_1, "wb"))
+    pickle.dump(person_clusters_test_shape, open(y_test_path, "wb"))
+
+    # for i in range(0, 20):
+    #     plt.figure(i)
+    #     plt.subplot(121)
+    #     plt.title("simplify")
+    #     plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
+    #
+    #     lab = np.array(person_clusters_shape[i])
+    #     plt.subplot(122)
+    #     plt.title("cluster")
+    #     for j in range(cluster_size):
+    #         plt.plot(lab[j][:, 0], lab[j][:, 1])
+    #     plt.savefig(f'results/input/test/{i}.png')
+
+
+def save_for_nn2(base_path, x_output_path, y_output_path, simplify_stroke_size, cluster_stroke_size, units):
     simplify_clusters, person_clusters = normalize(base_path)
 
     cluster_size = 0
     for cluster in person_clusters:
         cluster_size = max(len(cluster.get_data()), cluster_size)
 
+    # Rotation
+    if units > 0:
+        print("Start rotate simplify")
+        simplify_clusters_new = []
+        step = np.ceil(360 / units)
+        for i, sim in enumerate(simplify_clusters):
+            print(f"{i} out of {len(simplify_clusters)}")
+            for ang in range(0, 360, step):
+                simplify_clusters_new.append(Analyzer.rotate(copy.deepcopy(sim), ang))
+        print("End rotate simplify")
+
+        print("Start rotate clusters")
+        person_clusters_new = []
+        for i, cluster2 in enumerate(person_clusters):
+            print(f"{i} out of {len(person_clusters)}")
+            person_clusters_new.append(copy.deepcopy(cluster2))
+            for ang in range(units - 1):
+                cluster2.rotate(step)
+                person_clusters_new.append(copy.deepcopy(cluster2))
+        print("End rotate clusters")
+    else:
+        simplify_clusters_new = simplify_clusters
+        person_clusters_new = person_clusters
+
     # Fix shapes for nn
     print("Start fix the shapes")
-    simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters), simplify_stroke_size, 2))
-    for i, stroke in enumerate(simplify_clusters):
+    simplify_clusters_shape = np.zeros(shape=(len(simplify_clusters_new), simplify_stroke_size, 2))
+    for i, stroke in enumerate(simplify_clusters_new):
         stroke = list(stroke)
         Analyzer.set_size(stroke, simplify_stroke_size)
         simplify_clusters_shape[i] = stroke
 
-    person_clusters_shape = np.zeros(shape=(len(person_clusters), cluster_size, cluster_stroke_size, 2))
-    for i, cluster in enumerate(person_clusters):
+    person_clusters_shape = np.zeros(shape=(len(person_clusters_new), cluster_size, cluster_stroke_size, 2))
+    for i, cluster in enumerate(person_clusters_new):
         for j, stroke in enumerate(cluster.get_data()):
             pairs = list(np.stack((stroke.get_feature('x'), stroke.get_feature('y')), axis=1))
             Analyzer.set_size(pairs, cluster_stroke_size)
@@ -426,21 +574,27 @@ if __name__ == "__main__":
     # x_path = 'x/x40_10_simplify_1_40_rotation_360.p'
     # save_dict_for_nn(base_path, x_path, y_path, rotation=True)
 
-    # aliza = get_participant("aliza", load_person=False)
-    # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5)
-    # y_path = 'y/40_10_0.5_new.p'
-    #     # x_path = 'x/40_10_0.5_new.p'
-    #     # save_for_nn2("aliza_40_10_0.5_stroke_length_.p", x_path, y_path, 30, 30)
+    # aliza = get_participant("aliza", load_person=True)
+    # aliza.create_dict(euc_dist_threshold=40, dist_threshold=1, ang_threshold=0.5)
+    # y_path = 'y/40_1_0.5_new.p'
+    # x_path = 'x/40_1_0.5_new.p'
+    # save_for_nn2("aliza_40_1_0.5_stroke_length_.p", x_path, y_path, 30, 30, 360)
+
+    y_train_path_0 = 'y/40_0_0.5_train_new_0.p'
+    y_train_path_1 = 'y/40_0_0.5_train_new_1.p'
+    x_train_path = 'x/40_0_0.5_train_new.p'
+    y_test_path = 'y/40_0_0.5_test_new.p'
+    x_test_path = 'x/40_0_0.5_test_new.p'
+    save_for_nn2_2("aliza_40_0_0.5_stroke_length_.p", x_train_path, y_train_path_0, y_train_path_0, x_test_path, y_test_path, 30, 30, 360)
 
     # draws = aliza.get_all_files_of_participant()
     # pickle.dump(draws, open("aliza_draws.p", "wb"))
-    aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
+    # aliza_draws = pickle.load(open("aliza_draws.p", "rb"))[0]
     # print(aliza_draws[1].get_pic_path())
-    plot_clusters(aliza_draws[1], euc_dist_threshold=40, dist_threshold=0, ang_threshold=0.5)
+    # plot_clusters(aliza_draws[2], euc_dist_threshold=40, dist_threshold=0, ang_threshold=0.5)
 
     # update_dict(aliza_draws[1], euc_dist_threshold=40, dist_threshold=0, ang_threshold=0.5)
     # save_dict_figs()
 
 # pic1 = [40, 10, 0.5, 10]
 # pic2 = [40, 10, 0.5, 15]
-

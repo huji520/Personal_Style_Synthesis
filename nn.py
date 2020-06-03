@@ -6,38 +6,47 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 
-simplify_clusters_shape = pickle.load(open('x/40_10_0.5_new.p', "rb"))
-person_clusters_shape = pickle.load(open('y/40_10_0.5_new.p', "rb"))
+# simplify_clusters_shape = pickle.load(open('x/40_1_0.5_new.p', "rb"))
+# person_clusters_shape = pickle.load(open('y/40_1_0.5_new.p', "rb"))
 
-for i in range(0, 20):
-    plt.figure(i)
-    plt.subplot(121)
-    plt.title("simplify")
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
-    plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
+x_train = pickle.load(open('x/40_0_0.5_train_new.p', "rb"))
+y_train_0 = pickle.load(open('x/40_0_0.5_train_new_0.p', "rb"))
+y_train_1 = pickle.load(open('x/40_0_0.5_train_new_1.p', "rb"))
+y_train = []
+y_train.extend(y_train_0)
+y_train.extend(y_train_1)
+x_test = pickle.load(open('x/40_0_0.5_test_new.p', "rb"))
+y_test = pickle.load(open('x/40_0_0.5_test_new.p', "rb"))
 
-    lab = np.array(person_clusters_shape[i])
-    plt.subplot(122)
-    plt.title("cluster")
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
-    for j in range(5):
-        plt.plot(lab[j][:, 0], lab[j][:, 1])
-    plt.savefig(f'results/input/test/{i}.png')
+# for i in range(0, 20):
+#     plt.figure(i)
+#     plt.subplot(121)
+#     plt.title("simplify")
+#     plt.xlim(-100, 100)
+#     plt.ylim(-100, 100)
+#     plt.plot(simplify_clusters_shape[i][:, 0], simplify_clusters_shape[i][:, 1], 'o')
+#
+#     lab = np.array(person_clusters_shape[i])
+#     plt.subplot(122)
+#     plt.title("cluster")
+#     plt.xlim(-100, 100)
+#     plt.ylim(-100, 100)
+#     for j in range(5):
+#         plt.plot(lab[j][:, 0], lab[j][:, 1])
+#     plt.savefig(f'results/input/test/{i}.png')
 
 
-indexes1 = np.arange(len(simplify_clusters_shape))
-np.random.shuffle(indexes1)
+# indexes1 = np.arange(len(simplify_clusters_shape))
+# np.random.shuffle(indexes1)
+#
+# simplify_clusters_shape = simplify_clusters_shape[indexes1]
+# person_clusters_shape = person_clusters_shape[indexes1]
 
-simplify_clusters_shape = simplify_clusters_shape[indexes1]
-person_clusters_shape = person_clusters_shape[indexes1]
-
-x_train = simplify_clusters_shape[:-100]
-y_train = person_clusters_shape[:-100]
-
-x_test = simplify_clusters_shape[-100:]
-y_test = person_clusters_shape[-100:]
+# x_train = simplify_clusters_shape[:-200]
+# y_train = person_clusters_shape[:-200]
+#
+# x_test = simplify_clusters_shape[-200:]
+# y_test = person_clusters_shape[-200:]
 
 x_train = x_train[..., tf.newaxis]
 
@@ -51,23 +60,23 @@ print(y_train.shape)
 class MyModel(Model):
     def __init__(self):
         super(MyModel, self).__init__()
-        self.reshape = Reshape((40, 30, 2))
+        self.reshape = Reshape((35, 30, 2))
         self.flatten = Flatten()
         self.dense1 = Dense(60, activation='relu')
         self.dense2 = Dense(120, activation='relu')
         self.dense2 = Dense(240, activation='relu')
         self.dense3 = Dense(480, activation='relu')
-        # self.dense4 = Dense(960, activation='relu')
-        # self.dense5 = Dense(1920, activation='relu')
-        self.dense6 = Dense(2400)
+        self.dense4 = Dense(960, activation='relu')
+        self.dense5 = Dense(1920, activation='relu')
+        self.dense6 = Dense(2100)
 
     def call(self, x):
         x = self.flatten(x)
         x = self.dense1(x)
         x = self.dense2(x)
         x = self.dense3(x)
-        # x = self.dense4(x)
-        # x = self.dense5(x)
+        x = self.dense4(x)
+        x = self.dense5(x)
         x = self.dense6(x)
         x = self.reshape(x)
         return x

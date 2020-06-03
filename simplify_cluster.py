@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import copy
+
 
 def distance(pt_1, pt_2):
     """
@@ -123,27 +122,27 @@ def in_box(start_x, end_x, start_y, end_y, point):
     return False
 
 
-def a(points, box_size):
-    simplify = []
-    start_x = int(np.min(points[:, 0]))
-    end_x = int(np.max(points[:, 0]) + 1)
-    start_y = int(np.min(points[:, 1]))
-    end_y = int(np.max(points[:, 1]) + 1)
-    for i in range(start_x, end_x+box_size, box_size):
-        for j in range(start_y, end_y+box_size, box_size):
-            next_point = [0, 0]
-            counter = 0
-            for point in points:
-                if in_box(i, i+box_size, j, j+box_size, point):
-                    next_point[0] += point[0]
-                    next_point[1] += point[1]
-                    counter += 1
-            if counter > 0:
-                next_point[0] /= counter
-                next_point[1] /= counter
-                simplify.append(next_point)
-
-    return simplify
+# def a(points, box_size):
+#     simplify = []
+#     start_x = int(np.min(points[:, 0]))
+#     end_x = int(np.max(points[:, 0]) + 1)
+#     start_y = int(np.min(points[:, 1]))
+#     end_y = int(np.max(points[:, 1]) + 1)
+#     for i in range(start_x, end_x+box_size, box_size):
+#         for j in range(start_y, end_y+box_size, box_size):
+#             next_point = [0, 0]
+#             counter = 0
+#             for point in points:
+#                 if in_box(i, i+box_size, j, j+box_size, point):
+#                     next_point[0] += point[0]
+#                     next_point[1] += point[1]
+#                     counter += 1
+#             if counter > 0:
+#                 next_point[0] /= counter
+#                 next_point[1] /= counter
+#                 simplify.append(next_point)
+#
+#     return simplify
 
 
 def get_dist(x, y):
@@ -178,30 +177,6 @@ def get_dist(x, y):
         return 5
 
 
-    # if h < 6 and w < 6:
-    #     return 5
-    # if h < 10 and w < 10:
-    #     return 8
-    # if h < 16 and w < 16:
-    #     return 10
-    # if h < 22 and w < 22:
-    #     return 12
-    # if h < 28 and w < 28:
-    #     return 14
-    # if h < 34 and w < 34:
-    #     return 16
-    # if h < 40 and w < 40:
-    #     return 18
-    # if h < 50 and w < 50:
-    #     return 20
-    # if h < 70 and w < 70:
-    #     return 24
-    # if h < 100 and w < 100:
-    #     return 28
-    # else:
-    #     return 32
-
-
 def simplify_cluster(x, y):
     """
 
@@ -216,13 +191,22 @@ def simplify_cluster(x, y):
     points = []
     max_length = 0
     idx = 0
-    for i, curve in enumerate(curves):
-        if len(curve) > max_length:
-            max_length = len(curve)
-            idx = i
 
-    for point in curves[idx]:
-        points.append(point)
+    if len(curves) == 0:
+        return [[0, 0], [5000, 5000]], 2
+
+    # for i, curve in enumerate(curves):
+    #     if len(curve) > max_length:
+    #         max_length = len(curve)
+    #         idx = i
+    #
+    # for point in curves[idx]:
+    #     points.append(point)
+
+    for curve in curves:
+        for point in curve:
+            points.append(point)
+
     return points, len(curves)
 
 

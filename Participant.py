@@ -175,8 +175,9 @@ class Participant:
             if min_length < len(p) < max_length:
                 if simplify_size:
                     Analyzer.set_size(p, simplify_size)
-                # error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
-                if num_of_stroke_in_simplify == 1:
+                error = nearest_neighbor.calc_error(np.stack((x, y), axis=1), p)
+                if error < 15:
+                # if num_of_stroke_in_simplify == 1:
                     indexes.append(i)
                 simplify_clusters.append(p)
 

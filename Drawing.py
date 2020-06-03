@@ -3,7 +3,6 @@ import copy
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 from Stroke import Stroke
-import simplify_cluster
 
 
 class Drawing:
@@ -193,7 +192,7 @@ class Drawing:
 
         return [start_x, start_y, end_x, end_y]
 
-    def plot_picture(self, show_reference=False, show_clusters=False, title="", num=1, plt_show=True, show_by_labels=False):
+    def plot_picture(self, show_reference=False, show_clusters=False, title="", num=1, plt_show=True, show_by_labels=False, save=False):
         """
         plot the reference picture and the actual drawing.
         @TODO: pictures should be in the same resolution.
@@ -239,6 +238,9 @@ class Drawing:
         plt.gca().invert_yaxis()
         if title:
             plt.title(title)
+
+        if save:
+            plt.savefig("out2.png")
 
         if plt_show:
             plt.show()
@@ -335,7 +337,7 @@ class Drawing:
         """
         print("Start clustering with group_strokes function")
         new_draws = []
-        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length() ]
+        data = [stroke for stroke in self._data if not stroke.is_pause() and 30 <= stroke.length()]
         counter = 0
         while len(data) != 0:
             # group = [stroke for stroke in data[1:] if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
@@ -352,8 +354,8 @@ class Drawing:
             i = 0
             data[0]._group = counter + 1
             for stroke in data[1:]:
-                if (self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T,
-                     np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold):
+                if self.strokes_euc_distance(np.array(data[0].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T) <= euc_dist_threshold \
+                        and self.calc_error(np.array(data[0].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T) < 30:
                      # or
                      # (self.strokes_distance(np.array(data[i].get_data()[1:3]).T, np.array(stroke.get_data()[1:3]).T,
                      # dist_threshold)
@@ -377,8 +379,8 @@ class Drawing:
                         group[-1]._color = counter % 5
 
             new_draws.append(Drawing(group, self._pic_path, is_cluster=True))
+            # print(f"{counter}: Number of strokes in current cluster: {len(group)}")
             counter = counter + 1
-            # print(f"Number of strokes in current cluster: {len(group)}")
         print(f"Number of clusters: {len(new_draws)}")
         print("End clustering with group_strokes function\n")
         return self, new_draws
@@ -405,3 +407,23 @@ class Drawing:
                     s += f"Current index: {i//2}\n"
                 s += f"{stroke.__str__()}\n"
         return s
+
+    @staticmethod
+    def calc_error(p1, p2):
+        """
+        calc error between two groups of 2D points, by OUR metric
+        :param p1: array of 2D points
+        :param p2: array of 2D points
+        :return: the error (float)
+        """
+        pt1 = np.array(p1)  # NxD, here D=2
+        pt2 = np.array(p2)  # MxD
+        d = pt1[:, None, :] - pt2[None, :, :]  # pairwise subtraction, NxMxD
+        d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
+        error1 = np.sqrt(d).sum()  # output, scalar
+
+        d = pt2[:, None, :] - pt1[None, :, :]  # pairwise subtraction, NxMxD
+        d = np.sum(d ** 2, axis=2).min(axis=1)  # min square distance, N
+        error2 = np.sqrt(d).sum()  # output, scalar
+
+        return (error1 + error2) / (len(p1) + len(p2))
