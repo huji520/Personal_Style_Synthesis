@@ -402,7 +402,7 @@ def normalize(base_path):
     return simplify_clusters, person_clusters
 
 
-def save_for_nn2_2(base_path, x_train_path, y_train_path_0, y_train_path_1, x_test_path, y_test_path, simplify_stroke_size, cluster_stroke_size, units):
+def save_for_nn2_2(base_path, x_train_path, y_train_path, x_test_path, y_test_path, simplify_stroke_size, cluster_stroke_size, units):
     simplify_clusters_train, person_clusters_train, simplify_clusters_test, person_clusters_test = normalize2(base_path, 200)
 
     cluster_size = 0
@@ -470,8 +470,7 @@ def save_for_nn2_2(base_path, x_train_path, y_train_path_0, y_train_path_1, x_te
 
     pickle.dump(simplify_clusters_train_shape, open(x_train_path, "wb"))
     pickle.dump(simplify_clusters_test_shape, open(x_test_path, "wb"))
-    pickle.dump(person_clusters_train_shape[:350000], open(y_train_path_0, "wb"))
-    pickle.dump(person_clusters_train_shape[350000:], open(y_train_path_1, "wb"))
+    pickle.dump(person_clusters_train_shape, open(y_train_path, "wb"))
     pickle.dump(person_clusters_test_shape, open(y_test_path, "wb"))
 
     # for i in range(0, 20):
@@ -558,7 +557,11 @@ if __name__ == "__main__":
     input_fish = "example_input/testdata fish.txt"
     input1 = "data/D_01/aliza/aliza__130319_0935_D_01.txt"
 
-    # aliza = get_participant("aliza", load_person=False, stroke_length=20)
+    draw = Analyzer.create_drawing(input_banana, orig_data=False)
+    new_draw = transfer_style(draw, "aliza", load_person=True, load_dict=False, already_simplified=True,
+                   euc_dist_threshold=10, dist_threshold=5, ang_threshold=0.5, matching_threshold=5,
+                   min_length=3, max_length=1000, stroke_length=None, simplify_size=None)
+    new_draw.plot_picture()
     # aliza.create_dict(euc_dist_threshold=40, dist_threshold=10, ang_threshold=0.5, simplify_size=40)
 
     # draw = Analyzer.create_drawing(input1)
@@ -574,18 +577,17 @@ if __name__ == "__main__":
     # x_path = 'x/x40_10_simplify_1_40_rotation_360.p'
     # save_dict_for_nn(base_path, x_path, y_path, rotation=True)
 
-    # aliza = get_participant("aliza", load_person=True)
+    # aliza = get_participant("aliza", load_person=True
     # aliza.create_dict(euc_dist_threshold=40, dist_threshold=1, ang_threshold=0.5)
     # y_path = 'y/40_1_0.5_new.p'
     # x_path = 'x/40_1_0.5_new.p'
     # save_for_nn2("aliza_40_1_0.5_stroke_length_.p", x_path, y_path, 30, 30, 360)
 
-    y_train_path_0 = 'y/40_0_0.5_train_new_0.p'
-    y_train_path_1 = 'y/40_0_0.5_train_new_1.p'
-    x_train_path = 'x/40_0_0.5_train_new.p'
-    y_test_path = 'y/40_0_0.5_test_new.p'
-    x_test_path = 'x/40_0_0.5_test_new.p'
-    save_for_nn2_2("aliza_40_0_0.5_stroke_length_.p", x_train_path, y_train_path_0, y_train_path_0, x_test_path, y_test_path, 30, 30, 360)
+    # y_train_path = 'y/40_0_0.5_train_new_0.p'
+    # x_train_path = 'x/40_0_0.5_train_new.p'
+    # y_test_path = 'y/40_0_0.5_test_new.p'
+    # x_test_path = 'x/40_0_0.5_test_new.p'
+    # save_for_nn2_2("aliza_40_0_0.5_stroke_length_.p", x_train_path, y_train_path, x_test_path, y_test_path, 30, 30, 60)
 
     # draws = aliza.get_all_files_of_participant()
     # pickle.dump(draws, open("aliza_draws.p", "wb"))

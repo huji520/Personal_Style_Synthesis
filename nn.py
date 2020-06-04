@@ -10,13 +10,9 @@ import os
 # person_clusters_shape = pickle.load(open('y/40_1_0.5_new.p', "rb"))
 
 x_train = pickle.load(open('x/40_0_0.5_train_new.p', "rb"))
-y_train_0 = pickle.load(open('x/40_0_0.5_train_new_0.p', "rb"))
-y_train_1 = pickle.load(open('x/40_0_0.5_train_new_1.p', "rb"))
-y_train = []
-y_train.extend(y_train_0)
-y_train.extend(y_train_1)
+y_train = pickle.load(open('y/40_0_0.5_train_new.p', "rb"))
 x_test = pickle.load(open('x/40_0_0.5_test_new.p', "rb"))
-y_test = pickle.load(open('x/40_0_0.5_test_new.p', "rb"))
+y_test = pickle.load(open('y/40_0_0.5_test_new.p', "rb"))
 
 # for i in range(0, 20):
 #     plt.figure(i)
@@ -50,8 +46,8 @@ y_test = pickle.load(open('x/40_0_0.5_test_new.p', "rb"))
 
 x_train = x_train[..., tf.newaxis]
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(16)
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(16)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(64)
+test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(64)
 
 print(x_train.shape)
 print(y_train.shape)
@@ -66,8 +62,8 @@ class MyModel(Model):
         self.dense2 = Dense(120, activation='relu')
         self.dense2 = Dense(240, activation='relu')
         self.dense3 = Dense(480, activation='relu')
-        self.dense4 = Dense(960, activation='relu')
-        self.dense5 = Dense(1920, activation='relu')
+        # self.dense4 = Dense(960, activation='relu')
+        # self.dense5 = Dense(1920, activation='relu')
         self.dense6 = Dense(2100)
 
     def call(self, x):
@@ -75,8 +71,8 @@ class MyModel(Model):
         x = self.dense1(x)
         x = self.dense2(x)
         x = self.dense3(x)
-        x = self.dense4(x)
-        x = self.dense5(x)
+        # x = self.dense4(x)
+        # x = self.dense5(x)
         x = self.dense6(x)
         x = self.reshape(x)
         return x
@@ -119,7 +115,7 @@ def train_model(model, epochs, loss_object, graph_train=None, graph_test=None, s
                 for k in range(30):
                     simplified_test = x_test[k]
                     label_test = y_test[k]
-                    visualize_reconstruction(simplified_test, label_test, model, k, epoch)
+                    visualize_reconstruction(simplified_test, label_test, model, k, epoch+1)
 
         if graph_train:
             graph_train.append(train_loss.result())
@@ -246,7 +242,7 @@ def loss_object_func(labels, predictions):
             tf.sqrt(tf.keras.backend.sum(tf.square(labels[k][:i] - predictions[k][:i]), axis=2))) / (j*30)
         k += 1
 
-    return a / 16
+    return a / 64
     # tf.print("predictions", predictions[0][:1,:3,:])
     # tf.print("labels", labels[0][:1,:3,:])
     # tf.print("diff", labels[0][:1, :3, :] - predictions[0][:1, :3, :])
